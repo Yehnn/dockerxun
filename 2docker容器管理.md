@@ -4,21 +4,19 @@
 
 课程为纯动手实验教程，为了能说清楚实验中的一些操作会加入理论内容。理论内容我们不会写太多，已经有太多好文章了，会精选最值得读的文章推荐给你，在动手实践的同时扎实理论基础。
 
-学习过程中遇到的所有问题，都可随时在[实验楼问答](https://www.shiyanlou.com/questions)中提出，与老师和同学一起交流。
-
 实验环境中可以联网，不受实验楼网络限制。
 
 ## 2. 学习方法
 
-实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
+实验楼的 Docker 课程包含 15 个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手 Docker 的同学。
 
-学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容，如果有任何疑问，随时在[实验楼问答](https://www.shiyanlou.com/questions/)中提问，实验楼团队和我都会及时回复大家的所有问题。
+学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
 如果实验开始部分有推荐阅读的材料，请务必先阅读后再继续实验，理论知识是实践必要的基础。
 
 ## 3. 本节内容简介
 
-容器是Docker的一个基本概念，每个容器中都运行一个应用并为该应用提供完整的运行环境。本实验将详细学习Docker容器的创建，运行管理操作。需要依次完成下面几项任务：
+容器是 Docker 的一个基本概念，每个容器中都运行一个应用并为该应用提供完整的运行环境。本实验将详细学习Docker 容器的创建，运行管理操作。需要依次完成下面几项任务：
 
 1. 创建第一个容器
 2. 查看容器信息
@@ -26,303 +24,420 @@
 4. 管理容器运行状态
 5. 容器导出及导入
 
-## 4. 实验一：创建第一个容器
+## 2. docker 命令
 
-还记得上一节实验中我们如何创建一个持续运行的容器吗？在这里我们回顾下创建的步骤：
+### 2.1 查看系统信息
 
-如果我们需要一个保持运行的容器呢，最简单的方法就是给这个容器一个可以保持的应用，比如`bash`，运行 ubuntu  容器并进入容器的 bash：
+除了查看版本信息之外，在 `docker` 的命令组中还有一个较为常用的命令，查看系统的一些相关信息：
 
-```
-$ docker run -t -i ubuntu /bin/bash
-```
+```bash
+docker system info
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1702timestamp1456718056669.png/wm)
+或者使用命令
 
-上面命令的说明：
-
-1. `-t`：分配一个 `pseudo-TTY`
-2. `-i`：`--interactive`参数缩写，表示交互模式，如果没有 `attach` 保持 STDIN 打开状态
-3. `ubuntu`：运行的镜像名称，默认为`latest` 标签
-4. `/bin/bash`：容器中运行的应用
-
-通过这个简单的命令，我们现在进入了新创建容器的bash中，在bash里执行的任何命令都不会影响到我们的宿主机，可以随意操作。你可以看到主机名和环境变量 `HOSTNAME` 都已经显示为容器的ID了。
-
-在这个bash下，我们可以进行各种Ubuntu系统上的操作，当然因为Docker本身的限制，有些涉及到磁盘、网络、设备等Linux特权命令是无法执行的，可以试试`reboot`命令，会提示你`shutdown: Unable to shutdown system`。
-
-如何退出这个bash呢？有两种方法，两种方法的效果完全不同：
-
-1. 直接 `exit`，这时候 bash 程序终止，容器进入到停止状态
-2. 使用组合键退出，仍然保持容器运行，我们可以随时回来到这个bash中来，组合键是 `Ctrl-p Ctrl-q`，你没有看错，是两组组合键，先同时按下`Ctrl`和p，再按`Ctrl`和q。就可以退出到我们的宿主机了。
-
-上述第二种方法比较常用，此时使用 `docker ps` 查看，能看到容器仍然在运行中：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1702timestamp1456718063612.png/wm)
-
-**注意：**有些浏览器把`Ctrl-Q`作为退出标签的快捷键，可能在执行上述命令时实验楼的页面会关掉，不过没有关系，重新打开实验楼的网站登陆后点击头像旁边的`继续实验`就能够再次回到实验桌面。
-
-如果想再次回到刚才的bash中，只需要使用 `docker attach`命令就可以再次连接到运行的bash里：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1702timestamp1456718083623.png/wm)
-
-**注意：** 命令后面的参数是容器的ID，并不需要输入完整的数字，只要能唯一定位这个容器即可，通常输入4位就足够了。
-
-我们创建了第一个容器后，将会先实践一些容器信息查看的命令。通过这些命令我们可以在宿主机上了解到容器的运行情况。
-
-**注意：**下面的命令都是针对该容器执行的，参数中的容器ID请替换成你实际实验中创建的容器ID。
-
-## 5. 实验二：查看容器信息
-
-### 5.1 查看容器列表 - `docker ps`
-
-`docker ps` 命令最常用，可以列出所有容器的信息，默认情况下只显示运行状态的容器。
-
-必要的参数在上一节实验中已经介绍过了，这里可以进行回顾。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1702timestamp1456718092203.png/wm)
-
-几个最常用的参数：
-
-+ `-a`：查看所有容器，含停止运行的
-+ `-l`：查看刚启动的容器
-+ `-q`：只显示容器ID
-
-我们查看所有容器的ID列表：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313185523.png/wm)
-
-### 5.2 查看容器内进程信息 - `docker top`
-
-`docker top` 命令查看容器中运行的进程信息，显示容器中进程的PID，UID，PPID，时间，tty等信息。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313238992.png/wm)
-
-上图中的输出结果由于终端大小限制，造成列表压缩到两行。
-
-### 5.3 查看容器输出信息 - `docker logs`
-
-获取容器的输出信息可以使用 `docker logs`命令，我们使用 `docker attach` 回到刚才创建的`/bin/bash`容器中，写一个循环输出信息的脚本，然后再使用`Ctrl-P Ctrl-Q`组合键退出。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313599084.png/wm)
-
-在宿主机的终端中，我们可以用`docker logs`命令查看输出信息。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313646454.png/wm)
-
-`docker logs` 只会显示截止到当前的所有输出，如果想动态查看实时输出，也可以加`-f`参数，类似`tail`命令：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313725110.png/wm)
-
-### 5.4 查看容器详细信息 - `docker inspect`
-
-`docker inspect` 查看容器的细节信息，包括创建时间，操作命令，端口映射信息，IP地址等等。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313874553.png/wm)
-
-这个命令不只可以查看容器的详细信息，也支持镜像的详细信息。默认输出JSON格式的信息，可以通过`-f`指定输出的项目。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457313990650.png/wm)
-
-上述命令中我们查看了网络配置信息中的IP地址和Gateway地址。
-
-
-### 5.5 查看容器的运行信息 - `docker stats`
-
-`docker stats ` 可以查看到运行状态容器的CPU，内存及网络使用率。在实际工作中，我们通常会把这个命令的输出连接到类似Logstash一类的服务用来分析。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457314116133.png/wm)
-
-这个命令的输出是实时刷新的（类似Linux上的`top`命令），如果需要退出可以使用`Ctrl-C`组合键。
-
-### 5.6 查看容器中的修改 - `docker diff`
-
-`docker diff` 查看容器中对镜像做了哪些变化。
-
-实验过程如下：
-
-1. 先执行`docker diff` 查看现有的容器中的变化，发现没有任何文件变化
-2. 连接到容器内部，`Ctrl-C`中断先前实验的死循环
-3. 再创建几个文件
-4. 退出到宿主机
-5. 再次使用`docker diff`命令查看是否有新的修改
-
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457314388834.png/wm)
-
-输出的信息中`A` 表示添加，后面的三个新建文件的路径。可以尝试下修改或删除文件会有怎样的`diff`输出。
-
-### 5.7 连接到容器中 - `docker attach` 
-
-`docker attach` 可以进入到容器操作。当我们容器后台运行时，有需要的话也可以再次连接进入到容器中。
-
-这个命令在上述的实验中已经多次用到了，不再提供单独的操作。
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/2-5.flv
-@`
-
-## 6. 实验三：创建容器
-
-创建一个容器的命令是 `docker run`。还记得先前实验中学习的`Hello, Shiyanlou`及`/bin/bash`容器如何创建的吗？在上一节中我们学习了最基本的容器创建方式，本节内容我们将通过实例来学习更详细的`docker run`参数。
-
-`docker run`命令的执行步骤：
-
-1. 查找镜像或下载镜像
-2. 创建容器
-3. 分配文件系统及虚拟网络（网桥，接口，IP地址），其中容器中的DNS默认挂载宿主机的`/etc/resolve.conf`和 `/etc/hosts`。
-4. 执行应用，默认执行镜像中指定的CMD参数，也可以在`docker run`后面跟应用来覆盖CMD命令。
-
-如果容器中的应用执行完成，则容器进入到终止状态。
-
-`docker run` 的参数非常多，本实验中我们设定要创建的容器配置：
-
-1. 设置容器名称 `shiyanlou`（使用`--name`，如果不加该参数，Docker会随机产生一个名字）。
-2. 设置容器的主机名 `shiyanlou`(使用`--hostname`参数）
-3. 设定网络信息，这里只使用一个简单的参数设置MAC地址（`--mac-address`参数）
-4. 设置资源限制，设置容器中最大的进程数，包括soft和hard两个限制值（使用`-ulimit nproc=...`等参数）
-
-创建容器过程中也可以挂载数据卷，数据卷在下一节实验中会详细介绍。这里不过多涉及。
-
-根据上述的需求我们通过查询 `docker run --help` ，使用相关参数，创建符合要求的容器：
-
-```
-docker run --name shiyanlou --hostname shiyanlou --mac-address 00:01:02:03:04:05 --ulimit nproc=1024:2048 -t -i ubuntu /bin/bash 
+docker info
 ```
 
-进入容器中我们可以对一些参数进行验证：
+运行截图如下所示：
 
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1515568022323.png/wm)
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315426985.png/wm)
+### 2.2 help
 
-容器中的 `ulimit` 不会有任何输出，查看实际的`ulimit`信息可以在宿主机上使用`docker inspect`查看：
+我们可以直接通过 `help` 或者使用 `man` 手册的方式查看相关命令的详细说明，例如我们直接使用如下命令:
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315508767.png/wm)
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/2-6.flv
-@`
-
-## 7. 实验四：容器运行状态
-
-### 7.1 守护状态
-
-首先需要了解的概念是容器的守护状态，类似于守护进程，需要为`run`命令增加参数`-d`，此时容器在后台以守护状态（Daemonized）形式运行。
-
-创建一个守护状态的容器：
-
-```
-docker run -d ubuntu /bin/bash -c "while true; do echo 'hello shiyanlou'; sleep 1; done"
+```bash
+$ docker --help
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315792638.png/wm)
+我们可以看到运行结果如下图所示。如果之前有学习过 docker 相关知识的同学，可能会发现一些不一样的地方。即下图中标出的 `Management commands` 和 `Commands`。在 1.13 版本之前，`docker` 并没有 `Mangement commands`。
 
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1515566385566.png/wm)
 
-会启动一个守护状态的容器在后台运行，使用 `docker attach` 登录上去可以看到循环输出 `hello shiyanlou` 的字符串。
+### 2.3 Management Commands
 
-### 7.2 容器运行管理
+在 `Docker 1.12 CLI` 中大约有四十个左右的顶级命令，这些命令没有经过任何组织，显得十分混乱，对于新手来说，学习它们并不轻松。
 
-本节实验中，我们需要练习启动，停止，重启容器的若干命令。这些命令用来管理从容器创建后到删除的整个生命周期。
+而在 `Docker 1.13` 中将命令进行分组，就得到如上图中所示的 `Management Commands`。例如经常使用的容器的一些相关命令：
 
-#### 停止容器 `docker stop`
+```bash
+# 创建一个新的容器，下面分别为 Commands 和 Management Commands，作用相同
+docker create
+docker container create
 
-停止运行状态的容器，进入到终止状态。停止状态的容器可以通过 `docker ps -a` 查看到。
+# 显示容器列表
+docker ps
+docker container ls
 
-首先使用 `docker stop shiyanlou` 命令停止名称为shiyanlou的容器：
+# 在一个新的容器中运行一个命令
+docker run
+docker container run
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315863441.png/wm)
-
-使用`docker ps -a`查看容器状态：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315928126.png/wm)
-
-#### 启动容器 `docker start`
-
-启动停止状态的容器。再次启动名称为shiyanlou的容器：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315965339.png/wm)
-
-#### 重启容器 `docker restart`
-
-可以将运行状态的容器终止，然后重新启动。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457315994098.png/wm)
-
-#### 杀死容器 `docker kill`
-
-跟进程相同，有的时候正常的终止操作不起作用时，我们需要使用 `kill` 命令杀死进程，在`docker kill`可以处理异常的运行状态的容器，强制退出：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316032870.png/wm)
-
-
-#### 暂停和恢复容器 `docker pause/unpause`
-
-类似Windows操作系统的睡眠，我们可以先临时将容器的运行挂起，不再使用CPU资源，当需要的时候再恢复成正常的运行状态。
-
-先启动shiyanlou容器，再执行`pause`操作：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316092752.png/wm)
-
-恢复shiyanlou容器：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316126208.png/wm)
-
-#### 删除容器 `docker rm`
-
-当一个容器不再需要时，我们可以删除这个容器。对于停止的容器直接执行`docker rm 容器ID`，对于运行状态的容器也可以执行`docker rm -f 容器ID强制删除`。
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316161305.png/wm)
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/2-7.flv
-@`
-
-## 8. 实验五：导出和导入容器
-
-导出和导入容器操作可以将容器导出到压缩包，并可将压缩包导入到Docker系统中成为镜像，为容器的迁移和镜像的制作提供支持。
-
-### 8.1 容器导出 `docker export`
-
-导出容器快照到本地的tar包。导出后的文件可以拷贝到其他 Docker 服务器上执行导入命令形成新的镜像，我们在实验楼的环境中进行测试。
-
-实验过程：
-
-1. 查看当前环境中的容器，选择需要导出的容器
-2. 查看该容器修改的内容
-3. 导出容器到tar包，保存到`/home/shiyanlou`目录
-4. 查看导出的tar包
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316343636.png/wm)
-
-需要注意的是，当容器导出后，容器仍然在Docker环境中运行，只是拷贝了一份内容到tar包。
-
-### 8.2 容器导入 `docker import`
-
-我们执行导入命令，将该文件加载到docker系统中，文件加载后会成为镜像，命令执行时需要制定导入后生成的镜像的名字：
-
-```
-cat shiyanlou.tar | docker import - shiyanlou:1.0
+...
 ```
 
-执行导入后，使用`docker images` 查看是否有新的镜像产生：
+如上所示，对于新的命令而言相比于旧命令明显更具有可读性。并且在实验环境中的 `docker` 版本以及最新版本中两者都是有效的命令，所以在这里我们将一些常用的命令，及其对应的 `Management Commands` 命令都列举出来，方便大家在后续的学习过程中可以进行参考。
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316515145.png/wm)
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517897142154.png/wm)
 
-docker import 命令比较灵活，也可以直接从URL链接进行导入。所以可以记住这是一种创建镜像的方式，将容器导出后拷贝到目标服务器然后导入成镜像。
+## 3. 容器
 
-使用新镜像创建容器，查看是否与导出的容器内容一致：
+### 3.1 查看容器列表
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1704timestamp1457316576910.png/wm)
+查看容器列表可以使用如下命令：
 
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/2-8.flv
-@`
+```bash
+docker container ls [OPTIONS]
+
+或者旧的命令
+
+docker ps [OPTIONS]
+```
+
+在使用命令时，我们可以使用一些可选的配置项 `[OPTIONS]`。
+
++ `-a` 显示所有的容器
+
++ `-q` 仅显示 `ID`
+
++ `-s` 显示总的文件大小
+
+> 这些配置项对于上述的两个命令都是有效的，在后面的内容不会再特殊说明。
+
+默认情况下，直接使用该命令仅显示正在运行的容器，如下所示：
+
+```bash
+$ docker container ls
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1515566501674.png/wm)
+
+此时并没有处于运行中的容器，所以显示为空。我们可以使用 `-a` 参数，来显示所有的容器，并加上 `-s` 选项，显示大小，命令如下：
+
+```bash
+$ docker container ls -a -s
+```
+
+限于界面大小，为了图片的格式更加友好，这里仅 **截取部分输出结果**：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1515566676304.png/wm)
+
+### 3.2 创建一个容器
+
+#### docker run
+
+首先，我们回顾在上一节使用到的 `docker run hello-world` 命令，该命令的格式为：
+
+```
+docker run [OPTIONS] IMAGE [COMMAND]
+```
+
+对应于 `Management Commands` 的命令为：
+
+```bash
+docker container run [OPTIONS] IMAGE [COMMAND]
+```
+
+上述两个命令的作用相同，`docker run` 命令会在指定的镜像 `IMAGE` 上创建一个可写的容器（因为镜像是只读的），然后开始运行指定的命令 `[COMMAND]`。
+
+一些常用的配置项为：
+
++ `-i` 或 `--interactive`， 交互模式
+
++ `-t` 或 `--tty`， 分配一个 `pseudo-TTY`，即伪终端
+
++ `--rm` 在容器退出后自动移除
+
++ `-p` 将容器的端口映射到主机
+
++ `-v` 或 `--volume`， 指定数据卷
+
+> 关于该命令的详细参数较多，并且大多数参数在很多命令中的意义是相同的，将在后面的内容中使用到时进行相应的介绍。
+
+我们指定 `busybox` 镜像，然后运行命令 `echo "hello shiyanlou"` 命令，如下所示：
+
+```bash
+$ docker container run busybox echo "hello shiyanlou"
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1515568678271.png/wm)
+
+在上图中，我们可以看到该命令执行的过程：
+
+1. 对于指定镜像而言，首先会从本地查找，找不到时将会从镜像仓库中下载该镜像
+
+2. 镜像下载完成后，通过镜像启动容器，并运行 `echo "hello shiyanlou"` 命令，输出运行结果之后退出。
+
+在执行命令之后，容器就会退出，如果我们需要一个保持运行的容器，最简单的方法就是给这个容器一个可以保持运行的命令或者应用，比如 `bash`，例如我们在 `ubunutu` 容器中运行 `/bin/bash` 命令：
+
+```bash
+$ docker container run -i -t ubuntu /bin/bash
+```
+
+对于交互式的进程而言（例如这里的 bash），必须将 `-i` 和 `-t` 参数一起使用，才能为容器进程分配一个伪终端，通常我们会直接使用 `-it`。
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695039457.png/wm)
+
+如上所示，我们已经进入到分配的终端中了，这时如果我们需要退出 `bash`，可以使用以下两种方式，它们的效果完全不同：
+
+1. 直接使用 `exit` 命令，这时候 `bash` 程序终止，容器进入到停止状态
+
+2. 使用组合键退出，容器仍然保持运行的状态，可以再次连接到这个 `bash` 中，组合键是  `ctrl + p` 和 `ctrl +q`。即先同时按下 `ctrl` 和 `p` 键，再同时按 `ctrl` 和 `q` 键。就可以退出
+
+这里我们使用第二种方式，然后使用 `docker container ls` 命令，可以看到该容器仍然处于运行中。
+
+#### docker container create
+
+严格意义上来讲，`docker run` 命令的作用并不是创建一个容器，而是在一个新的容器中运行一个命令。而用于创建一个新容器的命令为
+
+```
+docker container create [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+或者使用旧的
+
+docker create [OPTIONS] IMAGE [COMMAND] [ARG...]
+```
+
+该命令会在指定的镜像 `IMAGE` 上创建一个可写容器层，并 **准备** 运行指定的命令。需要着重强调的是，这里是准备运行，并不是立即运行。即该命令只创建容器，并不会运行容器。
+
+一些常见的配置项如下所示：
+
++ `--name` 指定一个容器名称，未指定时，会随机产生一个名字。
+
++ `--hostname` 设置容器的主机名
+
++ `--mac-address` 设置 `MAC` 地址
+
++ `--ulimit` 设置 Ulimit 选项。
+
+> 关于上述提到的 `ulimit`，我们可以通过其对容器运行时的一些资源进行限制。`ulimit` 是一种 `linux` 系统的内建功能，一些简单的描述，可以参考 https://www.ibm.com/developerworks/cn/linux/l-cn-ulimit/  ，而对于在下面我们将要设置的部分值的含义，可以参考
+> ttps://access.redhat.com/solutions/61334 。
+
+除此之外，关于创建容器，我们还可以设置有关存储和网络的详细内容，将会在下一节的内容中进行介绍。
+
+如下示例，我们指定容器的名字为 `shiyanlou`，主机名为 `shiyanlou`，设置相应的 `MAC` 地址，并通过 `ulimit` 设置最大进程数（`1024:2048` 分别代表软硬资源限制，详细内容可以参考上面的链接），使用 `ubuntu` 的镜像，并运行 `bash`：
+
+```bash
+$ docker container create --name shiyanlou --hostname shiyanlou --mac-address 00:01:02:03:04:05 --ulimit nproc=1024:2048 -it ubuntu /bin/bash
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516694843573.png/wm)
+
+此时，容器创建成功后，会打印该容器的 `ID`，这里需要简单说明一下，在 `docker` 中，容器的标识有三种比较常见的标识方式：
+
++ `UUID` 长标识符，例如 `1f6789f885029dbdd4a6426d7b950996a5bcc1ccec9f8185240313aa1badeaff`
+
++ `UUID` 短标识符，从长标识符开始，只要不与其它标识符冲突，可以从头开始，任意选用位数，例如针对上面的长标识符，可以使用 `1f`，`1f678` 等等
+
++ `Name` 最后一种方式即是使用容器的名字
+
+在容器创建成功后，我们可以查看其运行状态，使用如下命令：
+
+```bash
+# 此时该容器并未运行，需要使用 -a 参数
+$ docker container ls -a
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695279979.png/wm)
+
+新创建的容器的状态 (`STATUS`) 为 `Created`，并且其容器名被设置为对应的值。
+
+### 3.3 查看容器的详细信息
+
+查看容器的详细信息可以使用如下命令：
+
+```bash
+docker container inspect [OPTIONS] CONTAINER [CONTAINER...]
+
+或者旧的
+
+docker inspect [OPTIONS] CONTAINER [CONTAINER...]
+```
+
+例如我们查看刚刚创建的容器的详细信息就可以使用以下命令：
+
+```bash
+# 使用容器名
+$ docker container inspect shiyanlou
+
+# 使用 ID ，因生成的 ID 不同，需要修改为相应的 ID
+$ docker container inspect 1f6789
+
+$ docker container inspect 1f6
+```
+
+例如，我们查看刚刚创建的名为 `shiyanlou` 的容器的 `MAC` 地址，就可以使用如下命令：
+
+```
+$ docker container inspect shiyanlou | grep "00:01"
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695478022.png/wm)
+
+### 3.4 容器的启动和暂停及退出
+
+容器的启动命令为：
+
+```
+docker container start [OPTIONS] CONTAINER [CONTAINER...]
+```
+
+对于上面我们创建的容器而言，此时处于 `Created` 状态，需要使用如下命令启动它：
+
+```bash
+$ docker container start shiyanlou
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695629395.png/wm)
+
+此时，运行一个容器我们分成了两个步骤，即创建和启动，使用的命令如下：
+
+```bash
+# 创建
+$ docker container create --name shiyanlou --hostname shiyanlou --mac-address 00:01:02:03:04:05 --ulimit nproc=1024:2048 -it ubuntu /bin/bash
+
+# 启动
+$ docker container start shiyanlou
+```
+
+上述的两个命令如果我们使用 `docker container run` 只需要一步即可，即此时 `run` 命令同时完成了 `create` 及 `start` 操作：
+
+```
+$ docker container run --name shiyanlou --hostname shiyanlou --mac-address 00:01:02:03:04:05 --ulimit nproc=1024:2048 -it ubuntu /bin/bash
+```
+
+> 除此之外，上面的 `run` 命令还完成一些其它的操作，例如没有镜像时会 `pull` 镜像，使用 `-it` 参数时完成了 `attach` 操作（后面会学习该操作），使用 `--rm` 参数在容器退出后还会完成 `container rm` 操作。
+
+> `run` 命令是一个综合性的命令，如果能够熟练的使用它可以简化很多步骤，但是其使用方式较为复杂
+
+启动之后，暂停容器可以使用如下命令：
+
+```bash
+# 暂停一个或多个容器
+docker container stop [OPTIONS] CONTAINER [CONTAINER...]
+
+# 暂停一个或多个容器中的所有进程
+docker container pause CONTAINER [CONTAINER...]
+```
+
+上述两个命令的区别在于一个是暂停容器中的进程，而另外一个是暂停容器，例如，我们使用 `stop` 停止刚刚启动的容器就可以使用如下命令：
+
+```bash
+$ docker container stop shiyanlou
+
+# 查看容器的状态
+$ docker container ls -a
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695730293.png/wm)
+
+如上图所示，容器被暂停后，此时处于 `Exited` 状态。
+
+### 3.5 连接到容器
+
+上述操作我们启动的容器运行于后台，所以，我们需要使用 `attach` 操作将本地标准输入输出流连接到一个运行中的容器，命令格式为：
+
+```bash
+docker container attach [OPTIONS] CONTAINER
+```
+
+如下示例，我们启动容器，并使用连接命令：
+
+```bash
+$ docker container start shiyanlou
+
+$ docker container attach shiyanlou
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516695933022.png/wm)
+
+连接到容器后，查看相应的主机名和 `Mac` 地址，可以判断我们连接到了刚刚创建的容器。
+
+### 3.6 其它命令
+
+除了上面介绍的一些命令之外，还有很多其它的命令，下面简单描述
+
+#### 获取日志
+
+获取容器的输出信息可以使用如下命令：
+
+```bash
+docker container logs [OPTIONS] CONTAINER
+```
+
+常用的配置项有：
+
++ `-t` 或 `--timestamps` 显示时间戳
+
++ `-f` 实时输出，类似于 `tail -f`
+
+如下所示，我们查看刚刚创建的容器的日志，使用如下命令：
+
+```bash
+$ docker container logs -tf shiyanlou
+```
+
+#### 显示进程
+
+除了获取日志之外，还可以显示运行中的容器的进程信息，例如查看刚刚创建的容器的进程信息：
+
+```bash
+$ docker container top shiyanlou
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516696183042.png/wm)
+
+> 需要注意的是，该命令对于并未运行的容器是无效的
+
+#### 查看修改
+
+查看相对于镜像的文件系统来说，容器中做了哪些改变，可以使用如下命令：
+
+```bash
+docker container diff shiyanlou
+```
+
+例如我们在 `shiyanlou` 容器中创建一个文件，就可以使用 `diff` 命令查看到相应的修改：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516696518553.png/wm)
+
+#### 重启
+
+重启容器可以使用如下命令：
+
+```bash
+docker container restart shiyanlou
+```
+
+#### 执行命令
+
+除了使用 `docker container run` 执行命令之外，我们还可以在一个运行中的容器中执行命令，使用如下格式：
+
+```bash
+docker container exec [OPTIONS] CONTAINER COMMAND [ARG...]
+```
+
+例如，我们在刚刚创建的容器中执行 `echo "test_exec"` 命令，就可以使用如下命令：
+
+```bash
+$ docker container exec shiyanlou echo "test_exec"
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516696614726.png/wm)
+
+#### 删除容器
+
+删除容器的命令：
+
+```bash
+docker container rm [OPTIONS] CONTAINER [CONTAINER...]
+```
+
+> 需要注意的是，在删除容器后，在容器中进行的操作并不会持久化到镜像中
 
 ## 9. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容：
 
 1. 创建第一个容器
 2. 查看容器信息
