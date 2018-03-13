@@ -16,20 +16,11 @@
 
 ## 3. 本节内容简介
 
-Docker中的网络一直是比较弱的，在较早期的版本中只提供最基本的网络通信支持，比如下面这三种场景最常见：
-
-1. 使用NAT方式连接外部网络
-2. 映射容器和宿主机的端口，使外部可以访问容器中的应用
-3. 容器间网络互联
-
 本节中，我们需要依次完成下面几项任务：
 
-1. Docker 网络基本配置
-2. Docker 网络访问控制
-3. Docker 容器端口映射
-4. Docker 容器互联
-
-本实验中我们需要改变 Docker 默认的网桥，网段，并阻止容器间互联，同时允许容器对外网访问。这是本次实验的基本需求。
+1. docker 容器端口映射
+2. 自定义网络实现容器互联
+4. host 和 none 网络的使用
 
 ## 3. 网络
 
@@ -93,8 +84,8 @@ $ docker container run -itd --name shiyanlou001 --network bridge ubuntu /bin/bas
 > 如果提示没有找到 `ifconifg` 命令，可以通过如下命令安装：
 >
 > ```bash
-> $ apt update
-> $ apt install net-tools
+> $ sudo apt update
+> $ sudo apt install net-tools
 > ```
 
 并且对于连接到默认的 `bridge` 之间的容器可以通过 IP 地址互相通信。例如我们启动一个 `shiyanlou002` 的容器，它可以与 `shiyanlou001` 通过 IP 地址进行通信。
@@ -104,8 +95,8 @@ $ docker container run -itd --name shiyanlou001 --network bridge ubuntu /bin/bas
 > 如果提示没有找到 `ping` 命令，可使用如下命令安装：
 >
 > ```bash
-> $ apt update 
-> $ apt install iputils-ping
+> $ sudo apt update 
+> $ sudo apt install iputils-ping
 > ```
 >
 > 其具体的实现原理可以参考链接 [Linux 上的基础网络设备](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1516877067391.png/wm)，以及涉及到[网桥的工作原理](https://segmentfault.com/a/1190000009491002)
@@ -130,7 +121,7 @@ $ docker run -d -p 10001:80 --name shiyanlou001 shiyanlou:1.0
 
 > `docker run` 命令的 `-p` 参数是通过端口映射的方式，将容器的端口发布到主机的端口上。其使用格式为 `-p ip:hostPort:containerPort`。并且还可以指定范围，例如 `-p 10001-10100:1-100`，代表将容器 `1-100` 的端口映射到主机上的 `10001-10100`端口上，两者一一对应。
 
-4. 创建成功后，我们可以在浏览器中输入 `localhost:10001` 访问到容器`shiyanlou001` 的 `apache` 服务，并查看此时 `iptables` 中 `nat` 表和 `filter` 表的规则，其中分别新增了一条比较重要的内容，如下图所示：
+4. 创建成功后，我们可以在浏览器中输入 `localhost:10001` 访问到容器 `shiyanlou001` 的 `apache` 服务，并查看此时 `iptables` 中 `nat` 表和 `filter` 表的规则，其中分别新增了一条比较重要的内容，如下图所示：
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517189337316.png/wm)
 
@@ -150,7 +141,7 @@ $ docker run -d --name shiyanlou002 shiyanlou:1.0
 $ sudo iptables -t nat -A DOCKER ! -i docker0 -p tcp --dport 10002 -j DNAT --to-destination 192.168.0.3:80
 ```
 
-7. 添加成功后我们在本地发出的 `localhost:10002` 请求会被定位到 `192.168.0.3:80` 上，但是在将请求转发到 `docker0` 网桥上时，对于默认的 `filter` 表中的 `FOEWARD` 链的规则是 `DROP`，因此我们还需要在 `filter` 表中设置相应的规则：
+7. 添加成功后我们在主机发出的本地公网或内网 ip 加端口号 10002 的请求会被定位到 `192.168.0.3:80` 上，但是在将请求转发到 `docker0` 网桥上时，对于默认的 `filter` 表中的 `FOEWARD` 链的规则是 `DROP`，因此我们还需要在 `filter` 表中设置相应的规则：
 
 ```bash
 $ sudo iptables -t filter -A FORWARD ! -i docker0 -o docker0 -p tcp -d 192.168.0.3 -j ACCEPT --dport 80
@@ -163,6 +154,20 @@ $ sudo iptables -t filter -A DOCKER ! -i docker0 -o docker0 -p tcp -d 192.168.0.
 9. 此时我们就能够通过 `192.168.0.3:80` 访问容器 `shiyanlou002` 中的 `apache` 服务了。 即通过 `iptables` 的方式实现了容器 `shiyanlou002` 上 `80` 端口到主机 `10002` 端口的映射。
 
 10. 最后，为了不影响后面实验的进行，这里我们删除掉手动添加的规则，并删除容器。
+
+    删除手动添加的规则可使用如下方法：
+
+    ```bash
+    #查看 nat 规则
+    $ sudo iptables -t nat -nvL --line-numbers
+    #比如删除 DOCKER 链的第 2 条规则
+    $ sudo iptables -t nat -D DOCKER 2
+
+    #查看 filter 规则
+    $ sudo iptables -nvL --line-numbers
+    #比如删除 DOCKER 链第 1 条规则
+    $ sudo iptables -D DOCKER 1
+    ```
 
 ### 3.2 自定义网络
 
@@ -317,164 +322,12 @@ $ docker run -it --nerwork none --rm busybox /bin/sh
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517214875513.png/wm)
 
-## 5. 实验二：Docker 网络访问控制
-
-容器默认是通过docker0的NAT模式访问外部网络，如果我们希望限制容器访问，有很多种办法：
-
-### 5.1 限制容器访问外网
-
-在上面的实验中，我们创建的shiyanlou容器是可以连接外网的，是通过shiyanlou0虚拟交换机进行了NAT转换：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1707timestamp1457325181829.png/wm)
-
-限制容器访问外网，可以关闭IP转发，设置方法是启动Docker时`--ip-forward=false`。
-
-`sudo vim /etc/default/docker` 修改配置文件：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1707timestamp1457325218047.png/wm)
-
-在重启Docker服务之前，Ubuntu系统上需要先清除iptables规则和`/proc/`下的转发配置：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457447433197.png/wm)
-
-
-**注意：** 如果有容器正在运行时重启Docker服务，所有运行的容器都会被强制停止。Docker服务重启后也不会重启被停止的容器。
-
-**注意：** 设置`/proc`下的值需要临时切换到root下才可以。单纯的sudo仍然会显示权限不够。
-
-创建新的容器，查看配置效果：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457447573602.png/wm)
-
-容器启动时会有网络转发失效的提示，并且无法ping通baidu。
-
-### 5.2 限制容器间的访问
-
-限制容器间的访问，可以设置`--icc`参数，或设置`iptables`参数。默认容器间可以互相访问，通过设置`--icc=false`可以禁止。
-
-修改配置文件：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1707timestamp1457326057291.png/wm)
-
-重启Docker服务后创建新的容器site1，site2，查看site1的IP地址是`192.168.100.3`，site2中对该IP进行ping：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1707timestamp1457326159124.png/wm)
-
-如果需要打开容器间访问，只需要设置`--icc=true`。
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/5-5.flv
-@`
-
-## 6. 实验三：Docker 容器端口映射
-
-运行`docker run`的时候可以使用`-P`参数进行端口映射，这个参数不需要指定任何宿主机的端口，会自动从`49000~49900`端口中选择一个映射到容器中开放的端口。
-
-而容器中开放的端口号如何获得呢？可以写在创建镜像的Dockerfile中：
-
-```
-FROM ubuntu:latest
-
-EXPOSE 80
-```
-
-基于该Dockerfile创建一个新的镜像shiyanloutest：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339059381.png/wm)
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339066242.png/wm)
-
-此时由该镜像创建的容器，如果使用了`-P`参数，则会自动分配一个宿主机的端口进行映射：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339206039.png/wm)
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339213623.png/wm)
-
-如果想指定映射端口，可以使用`-p`参数，请注意一个宿主机的端口只能绑定到一个容器，如果该端口已经有进程在用则不可以绑定。并且`-p`参数可以绑定多个端口：
-
-```
-docker run -ti -p 80:80 -p 5000:5000 --name shiyanlou3 ubuntu
-```
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339580918.png/wm)
-
-`docker inspect shiyanlou3` 查看容器端口映射情况：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339587405.png/wm)
-
-如果想映射到指定的本地地址，可以增加IP参数，比如映射到`127.0.0.1`地址，只需要将参数写成 `-p 127.0.0.1:80:80`。
-
-查看指定容器的端口映射可以使用`docker port`命令：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339759107.png/wm)
-
-`Docker` 的端口映射也是通过`iptables`规则来设置的，当完成映射后，使用`iptables`命令查看是否新增了规则：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457339765821.png/wm)
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/5-6.flv
-@`
-
-## 7. 实验四：Docker 容器互联
-
-### 7.1 实验场景
-
-设定一个场景，我们的应用包含多个容器：
-
-1. 容器1：Web前端服务 端口80
-2. 容器2：App应用服务 端口80
-3. 容器3：Redis数据库服务 端口6379
-
-我们创建容器后，如何让这三个容器连接共同构成我们所需的Web应用服务呢？
-
-此时我们并不想将每个容器的端口都通过映射的方式暴露出来，那么Docker又提供了怎样的方案呢？
-
-这里需要介绍Docker强大的`--link`参数，完美支持容器间互联。
-
-### 7.2 实验分析
-
-需要创建三个容器，分别根据作用命名，在创建过程中使用`--link`参数让容器间建立安全的互联通道。
-
-`docker run`命令的`--link`参数可以在不映射端口的前提下为两个容器间建立安全连接。`--link`参数可以连接一个或多个容器到将要创建的容器。
-
-三个容器命名为：web，app，db，连接方式分别是web连接app，app连接db。其中web和app容器使用上面创建的`EXPOSE 80`端口的镜像`shiyanloutest:1.0`。
-
-### 7.3 开始实验
-
-按照`7.2`中的分析，依次创建三个容器：
-
-```
-docker run -d --name db redis
-docker run -ti --name app --link db:db shiyanloutest:1.0 /bin/bash
-docker run -ti --name web --link app:app shiyanloutest:1.0 /bin/bash
-```
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457345560042.png/wm)
-
-进入到web容器中可以查看到`--link`参数为了连接容器做了哪些改变：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1707timestamp1457345574708.png/wm)
-
-可以看到环境变量和`/etc/hosts`文件的变化，在web容器中可以`ping app`进行测试。
-
-通过`--link`参数可以把几个容器绑定在一起，并且不需要向外部公开内部应用容器和数据库容器的端口号，只需要将对外提供服务的web服务端口80开放即可。
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/5-7.flv
-@`
-
 ## 8. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容：
 
-1. Docker 网络基本配置
-2. Docker 网络访问控制
-3. Docker 容器端口映射
-4. Docker 容器互联
+1. docker 容器端口映射
+2. 自定义网络实现容器互联
+3. host 和 none 网络的使用
 
 请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。
-

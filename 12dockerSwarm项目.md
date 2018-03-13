@@ -4,15 +4,13 @@
 
 课程为纯动手实验教程，为了能说清楚实验中的一些操作会加入理论内容。理论内容我们不会写太多，已经有太多好文章了，会精选最值得读的文章推荐给你，在动手实践的同时扎实理论基础。
 
-学习过程中遇到的所有问题，都可随时在[实验楼问答](https://www.shiyanlou.com/questions)中提出，与老师和同学一起交流。
-
 实验环境中可以联网，不受实验楼网络限制。
 
 ## 2. 学习方法
 
 实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
 
-学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容，如果有任何疑问，随时在[实验楼问答](https://www.shiyanlou.com/questions/)中提问，实验楼团队和我都会及时回复大家的所有问题。
+学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
 如果实验开始部分有推荐阅读的材料，请务必先阅读后再继续实验，理论知识是实践必要的基础。
 
@@ -42,176 +40,229 @@ $ sudo service docker restart
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
 
-## 4. 实验一：下载 Swarm
+## 2. 概述
 
-部署 Swarm 可以直接使用 Docker 的 Swarm 容器。这个 Swarm 容器既可以作为 Swarm 管理服务也可以运行在每个服务器节点上作为 Agent 服务。
+### 2.1 Swarm
 
-从 Docker Hub pull swarm容器：
+Swarm 是 Docker 发布的管理集群的工具，一个集群由多个运行 `Docker` 的主机组成。下面我们简单介绍 Swarm 中的一些关键概念。
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1714timestamp1458808496212.png/wm)
+Swarm 在 Docker 1.12 之后被集成到 Docker Engine 中，又被称为 `swarm mode`，后面我们所说的 swarm 都是指 swarm mode。
 
-然后我们像执行一个命令那样操作 Swarm 容器来创建一个集群。
+### 2.2 关键概念
 
+#### Role
 
-操作演示视频
+一个集群由多个运行 Docker 的主机组成，分别作为管理者（Manager）和工作者（Worker）两个角色。管理者管理集群中的成员，而工作者运行集群服务。给定的 Docker 主机可以是一个管理员，也可以是一个工作者，或者同时具备这两个角色。
+
+#### Node
+
+一个节点（Node）是参与到 Swarm 集群中的一个实例。一般表现为运行 Docker 的主机。
+
+#### 服务与任务
+
+一个服务是任务在管理节点或工作节点执行的定义，服务中运行的单个容器被称为任务。
+
+使用集群模式运行服务时，一般有两种选项：
+
+1. replicated services，复制服务，根据设定的值，swarm 调度在节点之间运行指定的副本任务。
+
+2. global services，全局服务，集群在每个可用节点上运行一项任务。
+
+一个服务的多个任务之间没有什么不同，但是对于一些特殊的服务而言，例如涉及到端口映射的服务，即便设定了多个任务，也只能启动一个。
+
+#### 堆栈
+
+堆栈（stack）是一组相互关联的服务，即一个堆栈能够定义和协调整个应用程序的功能（但是一些非常复杂的应用程序可能需要使用多个堆栈）。
+
+对于在上一节我们学习的 Docker Compose 定义的应用程序来说，从技术角度来讲，就可以说我们一直在使用堆栈。但是 Docker Compose 是运行在单个主机上，而这里我们所说的堆栈可以运行在一个集群中，即是一个分布式的应用程序。
+
+## 3. Docker Swarm
+
+### 3.1 环境搭建
+
+#### 创建一个 swarm
+
+在 Docker 1.12 版本之后，Swarm 被集成到 Docker Engine 中（即 Swarm mode）。我们可以直接运行以下命令来创建一个集群：
+
+```
+$ docker swarm init --advertise-addr <IP>
+```
+
+对于单网卡，单 IP 来说，我们可以直接使用 `docker swarm init` 命令，但是实验环境中有两张网卡，用于访问外部网络的网卡为 `eth1`，所以需要指定 `<IP>` 为 `eth1` 上的地址，因为其它节点必须能够访问管理者的 IP 地址。其运行结果中包含将新节点加入到集群中的命令：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517280941602.png/wm)
+
+这时，我们可以使用 `docker info` 命令查看 swarm 的状态：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517281019192.png/wm)
+
+除此之外，还可以使用 `docker node ls` 命令查看有关节点的信息：
+
+```
+$ docker node ls
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517281062552.png/wm)
+
+#### 向 swarm 中添加节点
+
+在运行 `docker swarm init` 时会输出向 swarm 中添加节点的命令。除此之外，我们也可以使用如下两个命令分别获取向 swarm 中添加管理节点和工作节点的命令，获取到的命令需要在被添加的节点上运行：
+
+```
+# 管理节点
+$ docker swarm join-token manager
+
+# 工作节点
+$ docker swarm join-token worker
+```
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517281108402.png/wm)
+
+由于实验环境中，我们只有一台服务器，如果自己本地搭建的有 docker 环境，可以尝试在自己的机器上运行上图中的命令，如下所示，为作者在本机 windows 安装的 docker ，将其加入到 swarm 中：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517281271834.png/wm)
+
+这时，再次使用 `docker node ls` 命令，就可以看到新增加的 `worker` 节点了，如下图所示：
+
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517562812869.png/wm)
+
+#### 移除节点
+
+如果需要在集群中移除一个节点，首先该节点的状态必须为 `down`，即该节点不可用，之后就可以正常的删除该节点了，在管理节点使用如下命令：
+
+```
+# NODE 为该节点的 ID
+$ docker node rm NODE
+```
+
+#### 提权或撤销权限
+
+对于一个 `worker` 节点来说，我们可以将其提升为一个 `manager` 节点，也可以将一个管理节点变为 `worker` 节点。在管理节点使用下面的命令即可：
+
+```
+# 提权
+docker node promote NODE
+
+# 撤权
+docker node demote NODE
+```
+
+Docker Swarm 基本操作视频：
+
 `@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/12-4.flv
+http://labfile.oss.aliyuncs.com/courses/980/week11/5-1.mp4
 @`
 
-## 5. 实验二：部署 Swarm 集群
+### 3.2 Docker Compose 与 Docker Swarm
 
-本节实验我们将用 Swarm 容器创建集群。默认情况下 Swarm 会使用 Docker Hub的发现服务：`discovery.hub.docker.com`，由于网络原因使用这个服务的话经常会出现节点信息无法找到的情况，因此我们替换成另外一种本地的 etcd 来提供信息发现的服务（Swarm还支持 Consul 和 Zookeeper等）。
+对于 Docker Compose 来说，即使我们可以定义多容器的应用程序，但是多个容器依然只能在单个主机上工作。
 
-### 5.1 安装 etcd
+这里我们以上一节定义的应用程序为例。进入 `app` 目录下，执行 `docker-compose up -d` 命令来启动服务。
 
-etcd 是一个服务注册和发现的工具。安装方法只是将二进制包下载下来放到系统路径下：
+`docker-compose up` 命令的运行结果如下图所示，图中标注的提示信息提示我们 Compose 并没有使用集群模式去部署服务，并将所有的容器调度到当前节点：
 
-```
-$ cd /home/shiyanlou
-$ wget http://labfile.oss.aliyuncs.com/courses/498/etcd-v2.0.9-linux-amd64.tar.gz
-$ tar zxvf etcd-v2.0.9-linux-amd64.tar.gz
-$ cd etcd-v2.0.9-linux-amd64/
-$ sudo mv etcd /usr/local/bin
-$ sudo mv etcdctl /usr/local/bin
-$ sudo chmod a+x /usr/local/bin/etcd
-$ sudo chmod a+x /usr/local/bin/etcdctl
-```
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517561367768.png/wm)
 
-在启动 etcd 之前，我们先确定 etcd 监听的端口，可以使用 `ifconfig` 查看实验楼提供的主机有若干个接口都有IP地址，为了方便容器中连接，如果是多台服务器的集群，请选择其他服务器可以连接的网络接口，本实验中我们选择使用 Docker0 虚拟网桥的 IP 地址 `192.168.0.1`，保证每个 Docker 容器都可以连接。
+此时运行成功后打开浏览器，输入 `127.0.0.1:8001`，依旧可以获取到正确的结果：
 
-打开一个Xfce终端来启动 etcd 服务，启动需要配置的必要参数：
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517368221961.png/wm)
+
+但是如果需要使用集群模式部署服务，需要使用 `docker stack deploy` 命令，并且服务所需的镜像需要提前构建好。所以需要修改 `app/docker-compose.yml` 文件，修改后如下所示：
 
 ```
-$ export ETCD_IP=192.168.0.1
-$ etcd --name etcd0 --initial-advertise-peer-urls http://$ETCD_IP:2380 \
-                  --listen-peer-urls http://$ETCD_IP:2380 \
-                  --listen-client-urls http://$ETCD_IP:2379 \
-                  --advertise-client-urls http://$ETCD_IP:2379 \
-                  --initial-cluster etcd0=http://$ETCD_IP:2380
+services:
+  redis:
+    image: redis:3.2
+  web:
+    image: app_web:latest
+    depends_on:
+    - redis
+    ports:
+    - 8001:80/tcp
+    volumes:
+    - /home/shiyanlou/app/web:/web:rw
+version: '3.0'
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458898918304.png/wm)
+> swarm 只支持 version: '3.0' 版本的 docker-compose.yml 文件
 
-注意保持这个Xfce终端不要关闭，并且不退出 etcd。打开新的 XFce 终端继续下面的实验。
-
-### 5.2 配置 Docker 守护进程
-
-默认情况下 Docker 服务不提供远程连接，需要对`/etc/default/docker`文件进行修改，要配置 `--host=tcp://xxxx`。
-
-实验楼的环境中已经配置了`--host=tcp://127.0.0.1:4243` ，但只支持本地的连接，为了能够让远程访问我们修改为`--host=0.0.0.0:4243`，注意4243端口也是实验楼修改的，并不是 Docker 默认的，修改后的配置文件：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899282994.png/wm)
-
-注意修改后不要忘记重新启动 Docker 服务才会其效果：
+这时首先使用 `docker-compose down` 命令暂停之前使用 `docker-compose` 启动的容器，然后使用 `docker stack deploy` 命令部署该应用程序，使用的命令如下：
 
 ```
-$ sudo service docker restart
+$ docker stack deploy -c docker-compose.yml app
 ```
 
-### 5.3 将服务器注册进集群
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517369570872.png/wm)
 
-为了将服务器注册到集群中，需要在服务器上运行 swarm 容器并执行join命令加入到上面创建的集群中：
+上述命令会创建两个服务，不过与直接使用 `docker-compose` 不同的是，该命令部署的是一个堆栈（stack），即一组相互关联的服务，服务会被部署在集群中，而不是单个节点。并且此时我们创建的是服务，而不是单个容器，即便我们暂停或删除运行副本任务的容器，该容器也会再次启动。
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899390245.png/wm)
+> 如果你添加了自己运行 docker 的主机到 swarm 中，就有可能发现上述部署的服务的部分容器运行在 swarm 中的不同节点上，即分布式应用程序。
 
-上面的命令需要在每一个加入集群的服务器节点上执行，其中的参数：
+如果有添加自己运行 docker 的主机到集群中，就会发现上述两个服务，其中某一个服务运行在自己的节点上，如下所示，`app_redis` 服务运行在作者的 windows 节点上：
 
-1. `--addr` 设置本地服务器的 Docker Engine 监听的地址
-2. `etcd://xxxx/swarm` 表示 etcd 服务的地址，地址后的`/swarm`是一个前缀，用来表示该地址存储的是swarm集群的信息。
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517561818075.png/wm)
 
-当这个命令执行后，Swarm将作为Agent运行在服务器节点上。可以通过`docker ps`查看到新的容器已经被创建。
+而实验环境中运行的则是 `app_web` 服务，如下图所示：
 
-由于实验楼环境限制，我们现在只有一台服务器节点，监听的地址也使用了本地`192.168.0.1`地址。
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517562145047.png/wm)
 
-### 5.4 创建集群管理容器
+### 3.3 管理堆栈和服务
 
-当所有的服务器节点上都已经运行了 Swarm Agent后，我们创建管理容器 Swarm Manager 来进行中心化的管理，管理服务器可以选择运行在任意一个服务器节点上：
+在创建一个集群之后，`docker stack` 和 `docker service` 两个命令集就变得可用了，他们分别用于管理堆栈和管理服务。
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899495039.png/wm)
-
-上面的命令中与5.3的操作类似，最大的不同是执行的 Swarm 命令是`manage`，etcd 仍然使用与上述命令相同的地址。`-H=0.0.0.0:2375` 表示个 Swarm Manager 监听的地址。
-
-创建的管理容器把端口进行了映射，将容器的2375端口映射到了宿主机的8080端口。
-
-现在我们的集群就已经创建完成，在这个集群里我们只有一台Docker服务器，Swarm Agent和Manager容器都运行在这一台服务器上。如果我们要添加其他的服务器，只需要在服务器上运行Swarm Agent容器，类似5.3的操作。
-
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/12-5.flv
-@`
-
-## 6. 实验三：使用 Docker Swarm 集群
-
-当Swarm集群建立后，如果操作和使用呢？
-
-### 6.1 列出服务器
-
-使用 Swarm 的`list`命令可以列出当前集群中的服务器，注意仍然需要增加 etcd 参数：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899728290.png/wm)
-
-### 6.2 配置 DOCKER_HOST
-
-Swarm 提供的接口可以让 docker 命令直接连接并使用集群。只需要配置 DOCKER_HOST 环境变量为Swarm Manager容器提供服务的地址：
+在上面部署了一个堆栈到集群中，我们可以使用下面的命令来查看所有的堆栈：
 
 ```
-export DOCKER_HOST=tcp://127.0.0.1:8080
+$ docker stack ls
 ```
 
-配置后我们执行 `docker info` 查看是否已经连接到了Swarm集群：
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517563035483.png/wm)
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899810876.png/wm)
+如图所示，该 `app` 堆栈有两个服务，具体的服务可以使用下面的命令来查看：
 
-返回的信息中可以看到包含了集群中服务器Node的数量，Swarm的版本等信息，容器的数量和状态信息。
+```
+$ docker stack services app
+```
 
-此时我们执行 `docker` 其他命令操作的不再是一台独立的服务器，而是一个集群。
+查看所有的服务则可以使用 `docker service ls` 命令，由于总共只有两个服务，所以下面两个命令的运行结果是一样的：
 
-这时候使用 `docker ps` 是看不到任何容器的，但 `docker ps -a` 可以看到 Docker Agent 和 Docker Manager。请思考下为什么会这样？
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517563385194.png/wm)
 
-### 6.3 其他管理命令
+除此之外，对于我们之前引入的任务的概念，我们也可以查看相应的任务，来确定该任务的状态以及具体运行于某个节点，如下所示：
 
-#### 创建和查看容器
+```
+# 查看 app 堆栈的任务
+$ docker stack ps app
 
-创建的命令与先前容器管理实验中学习的完全一样：
+# 查看服务 app_redis 的任务
+$ docker service ps app_redis
+```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458899980000.png/wm)
+由于会显示启动失败的任务，并且集群中是否有添加自己的节点，所以显示结果可能并不一致，这里没有给出具体的命令截图。
 
-`docker ps` 输出的结果中除了容器名称外还包括了一个所在的节点的名字。
+并且由于此时实在集群中部署的服务，所以手动暂停或删除容器之后，还会自动启动新的容器，如下所示：
 
-#### 查看其他资源
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517564302740.png/wm)
 
-查看镜像列表：
+因此对于服务的管理，我们需要直接操作该堆栈或者操作服务，而不是容器。
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458900236321.png/wm)
+例如，我们停止服务可以使用如下的命令：
 
-其中镜像列表与单机情况没有区别，不过如果要使用 `docker pull` 的时候会把镜像 pull 到集群中的每一台服务器节点上。
+```
+# 移除一个堆栈，将会移除堆栈中的所有服务
+$ docker stack rm app
 
-查看Swarm集群中的网络：
+# 移除一个或多个服务
+$ docker service rm app_redis app_web
+```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1714timestamp1458900241588.png/wm)
+在移除了一个堆栈里的所有服务之后，该堆栈也被自动移除了，如下图所示，移除掉 `app` 堆栈里的所有服务后，该堆栈也被自动移除了：
 
-现在列出的网络都包含节点的主机名，表示都是服务器上的本地网络，Swarm支持`overlay`的全局网络配置，实验楼的单机环境无法支持，大家可以阅读 [Swarm网络配置](https://docs.docker.com/swarm/networking/) 学习，有问题欢迎到[实验楼问答](https://www.shiyanlou.com/questions/3522)中交流。
-
-### 6.4 扩展实验
-
-更进一步的学习可以参考 [Swarm 官方文档](https://docs.docker.com/swarm/)。
-
-其中比较关键的地方包括：
-
-1. [为Swarm配置TLS](https://docs.docker.com/swarm/configure-tls/)
-2. [Swarm Discovery策略](https://docs.docker.com/swarm/discovery/)
-3. [Swarm 高可用性配置](https://docs.docker.com/swarm/multi-manager-setup/)
-
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/12-6.flv
-@`
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517565257416.png/wm)
 
 ## 7. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容：
 
 1. 安装 Docker Swarm
 2. 部署和管理 Swarm 集群

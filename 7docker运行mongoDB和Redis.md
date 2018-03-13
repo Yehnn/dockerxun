@@ -4,14 +4,12 @@
 
 课程为纯动手实验教程，为了能说清楚实验中的一些操作会加入理论内容。理论内容我们不会写太多，已经有太多好文章了，会精选最值得读的文章推荐给你，在动手实践的同时扎实理论基础。
 
-学习过程中遇到的所有问题，都可随时在[实验楼问答](https://www.shiyanlou.com/questions)中提出，与老师和同学一起交流。
-
 实验环境中可以联网，不受实验楼网络限制。
 ## 2. 学习方法
 
 实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
 
-学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容，如果有任何疑问，随时在[实验楼问答](https://www.shiyanlou.com/questions/)中提问，实验楼团队和我都会及时回复大家的所有问题。
+学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
 如果实验开始部分有推荐阅读的材料，请务必先阅读后再继续实验，理论知识是实践必要的基础。
 
@@ -26,7 +24,7 @@
 3. Dockerfile 的编写
 4. 从 Dockerfile 构建镜像
 
-本次实验的需求是完成 Dockerfile，通过 Dockerfile 创建 MongoDB 或 Redis 应用。Dockerhub上已经提供了官方的 MongoDB 和 Redis 镜像，本实验仅仅用于学习Dockerfile及Docker机制。
+本次实验的需求是完成 Dockerfile，通过 Dockerfile 创建 MongoDB 或 Redis 应用。Dockerhub 上已经提供了官方的 MongoDB 和 Redis 镜像，本实验仅仅用于学习 Dockerfile 及 Docker 机制。
 
 > MongoDB 是一个基于分布式文件存储的数据库。由C++语言编写。旨在为WEB应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。特点是高性能、易部署、易使用，存储数据非常方便。
 > -来自百度百科
@@ -61,9 +59,9 @@ touch shiyanloumongodb/Dockerfile shiyanlouredis/Dockerfile
 
 使用vim/gedit编辑Dockerfile文件，根据我们的需求输入内容。
 
-## 5. 实验一：Dockerfile 基本框架
+## 9. 实验四：Dockerfile 基本框架
 
-### 5.1 基本框架
+### 9.1 基本框架
 
 按照上一节学习的内容，我们先完成Dockerfile基本框架。
 
@@ -88,7 +86,7 @@ CMD ["supervisord"]
 
 上面的Dockerfile创建了一个简单的镜像，并使用`Supervisord`启动服务。
 
-### 5.2 安装SSH服务
+### 9.2 安装SSH服务
 
 首先安装所需要的软件包：
 
@@ -110,7 +108,7 @@ RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/ss
 ```
 
 
-## 6. 实验二：完成 MongoDB Dockerfile
+## 10. 实验五：完成 MongoDB Dockerfile
 
 在上述基本的架构下，我们根据需求可以增加新的内容到Dockerfile中，完成 MongoDB Dockerfile。
 
@@ -121,7 +119,7 @@ cd /home/shiyanlou/shiyanloumongodb/
 vim Dockerfile
 ```
 
-### 6.1 安装最新的MongoDB
+### 10.1 安装最新的MongoDB
 
 在Ubuntu最新版本下安装MongoDB非常简单，参考 [MongoDB安装文档](https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/) 。有两种方法：
 
@@ -169,7 +167,7 @@ MongoDB 和 SSH 对外的端口：
 EXPOSE 27017 22
 ```
 
-### 6.2 编写`Supervisord`配置文件
+### 10.2 编写`Supervisord`配置文件
 
 添加`Supervisord`配置文件来启动mongodb和ssh，创建文件`/home/shiyanlou/shiyanloumongodb/supervisord.conf`，添加以下内容：
 
@@ -190,7 +188,7 @@ Dockerfile中增加向镜像内拷贝该文件的命令：
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ```
 
-### 6.3 完整的 Dockerfile
+### 10.3 完整的 Dockerfile
 
 ```
 # Version 0.1
@@ -227,13 +225,7 @@ EXPOSE 27017 22
 CMD ["supervisord"]
 ```
 
-
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/7-6.flv
-@`
-
-## 7. 实验三：完成 Redis Dockerfile
+## 11. 实验六：完成 Redis Dockerfile
 
 在上述基本的架构下，我们根据需求可以增加新的内容到Dockerfile中，完成 Redis Dockerfile。
 
@@ -244,7 +236,7 @@ cd /home/shiyanlou/shiyanlouredis/
 vim Dockerfile
 ```
 
-### 7.1 安装 Redis
+### 11.1 安装 Redis
 
 由于 MongoDB 中我们已经学习了如何通过二进制压缩包安装最新版本MongoDB的过程，在此安装 Redis 我们直接使用 Ubuntu 源中默认的 Redis 版本。
 
@@ -260,7 +252,7 @@ RUN apt-get install redis-server
 EXPOSE 27017 22
 ```
 
-### 7.2 编写`Supervisord`配置文件
+### 11.2 编写`Supervisord`配置文件
 
 添加`Supervisord`配置文件来启动 redis-server 和 ssh，创建文件`/home/shiyanlou/shiyanlouredis/supervisord.conf`，添加以下内容：
 
@@ -281,7 +273,7 @@ Dockerfile中增加向镜像内拷贝该文件的命令：
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ```
 
-### 7.3 完整的 Dockerfile
+### 11.3 完整的 Dockerfile
 
 ```
 # Version 0.1
@@ -309,14 +301,10 @@ EXPOSE 6379 22
 CMD ["supervisord"]
 ```
 
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/7-7.flv
-@`
 
-## 8. 实验五：从 Dockerfile 创建镜像
+## 12. 实验七：从 Dockerfile 创建镜像
 
-### 8.1 创建 MongoDB 镜像
+### 12.1 创建 MongoDB 镜像
 
 进入到`/home/shiyanlou/shiyanloumongodb/`目录，执行创建命令。
 
@@ -342,7 +330,7 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511456998.png/wm)
 
-### 8.2 创建 Redis 镜像
+### 12.2 创建 Redis 镜像
 
 进入到`/home/shiyanlou/shiyanlouredis/`目录，执行创建命令。
 
@@ -366,14 +354,9 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511592966.png/wm)
 
-操作演示视频
-`@
-https://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/7-8.flv
-@`
+## 13. 总结
 
-## 8. 总结
-
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容，任何不清楚的地方欢迎到 QQ群与我们交流：
 
 1. MongoDB 的安装
 2. Redis 的安装

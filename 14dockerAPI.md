@@ -192,12 +192,7 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 5. `docker start`：`POST /containers/(id)/start`
 6. `docker attach`：`POST /containers/(id)/attach`
 
-可以参照上面三个操作进行实验。任何问题欢迎到实验楼问答交流。
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-5.flv
-@`
+可以参照上面三个操作进行实验。
 
 ## 6. 实验三：使用 API 管理镜像：创建，查看，删除等操作
 

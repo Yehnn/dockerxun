@@ -27,8 +27,7 @@ Docker Compose 项目地址：[https://github.com/docker/compose](https://github
 本节中，我们需要依次完成下面几项任务：
 
 1. 安装 Docker Compose
-2. 创建 Docker Compose 服务 - Web+redis网站
-3. Docker Compose 服务管理
+2. 创建 Docker Compose 服务 - Web+redis 网站
 
 在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置`/etc/default/docker`文件中的`DOCKER_OPTS`，然后再重启 Docker：
 
@@ -41,70 +40,83 @@ $ sudo service docker restart
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
 
-## 4. 实验一：安装 Docker Compose
+## 4. Docker Compose
 
-最简单的安装方法是 pip 命令直接安装 `pip install docker-compose`，但我们要装最新版，最好的方式是从 github 下载。
+### 4.1 概述
 
-目前 Docker Compose 发布的最新版本是 1.6.2，可以从github上直接下载安装，因为网速原因，我们把github上的安装包上传到了阿里云存储上：
+#### Compose
+
+Compose 是定义和运行多容器 `Docker` 应用程序的工具。使用 Compose，可以通过编辑 `YAML` 文件来配置应用程序的服务。它可以用来管理应用程序的生命周期，例如启动，停止以及重构服务。
+
+#### service
+
+在分布式应用程序中，应用程序的不同部分被称为服务（service），例如常见的提供数据库存储的服务。服务实际上只是生产中的镜像。一个服务仅仅运行一个镜像，但它定义了服务运行的方式，例如使用哪个端口，该容器应该运行多少个副本等。
+
+#### 使用过程
+
+使用 Compose 的三个过程如下：
+
+1. 定义应用程序的环境，即 Dockerfile
+
+2. 定义组成应用程序的服务，一般为定义 `docker-compose.yml` 文件
+
+3. 启动整个应用程序
+
+> 关于 docker-compose.yml 文件的详细编写格式可以参考：https://docs.docker.com/compose/compose-file/#reference-and-guidelines
+
+目前有三种版本的 Compose 文件格式：
+
+1. version 1: 最早的版本使用传统格式，将在未来的 Compose 版本中被弃用
+
+2. version 2: 现在使用最多的文件格式
+
+3. version 3: 最新的版本，旨在 Compose 和被集成到 Docker Engine 中的 swarm mode 之间互相兼容（swarm 在下一节的内容会学习相关的知识）。
+
+### 4.2 安装
+
+在 linux 中，Compose 需要单独安装，我们需要从 github 上下载 Docker Compose 二进制文件。但是官网提供的从 github 上下载的链接速度十分缓慢，在实验环境中，我们已提供该文件，直接使用以下命令进行下载：
 
 ```
-$ cd /home/shiyanlou
-$ curl -L http://labfile.oss.aliyuncs.com/courses/498/docker-compose-`uname -s`-`uname -m` > /home/shiyanlou/docker-compose
+$ wget http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/980/software/docker-compose-Linux-x86_64
 ```
 
-将下载的二进制文件拷贝到`/usr/local/bin` 目录：
+下载成功后，为了能够直接使用该可执行文件执行命令，一般将其放入 `$PATH` 的环境变量支持的路径中，并添加可执行权限，使用的命令如下：
 
 ```
-$ sudo cp /home/shiyanlou/docker-compose /usr/local/bin/docker-compose
-$ sudo chmod a+x /usr/local/bin/docker-compose
+$ sudo mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
+
+$ sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-安装完成后查看 `docker-compose` 命令的版本：
+执行完成后，就能够在终端下直接使用 `docker-compose` 命令了：
 
-```
-$ docker-compose --version
-```
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517365151690.png/wm)
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458792923737.png/wm)
+### 4.3 实例
 
-如果需要删除 Compose，只需要将执行文件删除即可：`sudo rm -rf /usr/local/bin/docker-compose`
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/11-4.flv
-@`
-
-## 5. 实验二：创建 Docker Compose 服务 - Web+redis网站
-
-在本实验中我们将创建含有两个容器的Web服务，该实例参考 Docker Compose 官方文档，并做了一些改变。
-
-通常实现一个 Docker Compose 项目包含下面几个步骤：
-
-1. 实现容器中运行的应用程序
-2. 创建 Compose 中所有容器所需的镜像
-3. 创建 Compose 配置文件定义服务
-4. 测试并启动服务
-
-### 5.1 实现应用
+在这里，我们将创建一个 web 应用程序，该实例参考 Docker Compose 官方文档，有两个服务，并做了一些改变。
 
 在本实验中，我们需要两个容器：
 
 1. web 容器：提供 web 服务，并连接后端的 redis 服务
+
 2. redis 容器：提供 redis 服务，接收 web 容器的连接
 
-我们需要自己实现的 web 应用程序放在 web 容器中运行，这个应用可以是任意语言开发，我们选择使用 python 的 flask web 框架实现一个简单的 web 应用。
-
-创建一个目录，在该目录下编辑 `app.py` 文件：
+其文件目录结构如下所示：
 
 ```
-$ mkdir /home/shiyanlou/webapp
-$ cd /home/shiyanlou/webapp
-$ vim app.py
+app
+|----web
+|     |----web.py
+|     |----requirements.txt
+|     |----Dockerfile
+|
+|----docker-compose.yml
 ```
 
-`app.py` 文件中写入下面的内容：
+1. 首先编辑 `app/web/web.py` 文件，写入下面的内容：
 
-```
+```py
 from flask import Flask
 from redis import Redis
 
@@ -120,239 +132,79 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80, debug=True)
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458792983776.png/wm)
+上述代码创建一个十分简单的 web 应用程序。该程序会连接 `redis` 服务，在访问 `/` 页面时，会自动将变量 `number` 加一，该 `INCR` 命令也在 `redis 数据类型` 一节中学习过。
 
-这个程序很简单，哪怕不懂 Python 也没有关系，简单的说明下程序的作用：
+2. 编辑 `app/web/requirements.txt` 文件，输入如下内容：
 
-1. 引入 Flask 和 Redis 包
-2. 连接 Redis 服务
-3. 创建一个访问web页面`/`时执行的逻辑，逻辑中自动增加redis里的一个变量`number`，并返回一句`Hello Shiyanlou! # %s` 给页面。
-4. 运行这个应用，监听在80端口
-
-在 `/home/shiyanlou/webapp` 目录下创建 `requirements.txt` 文件：
-
-```
-$ vim /home/shiyanlou/webapp/requirements.txt
+```txt
+flask==0.10
+redis==2.10.3
 ```
 
-输入所需要的python 依赖包：
+创建 `requirements.txt` 文件，输入需要使用的 python 依赖包，方便安装。
 
-```
-flask
-redis
-```
-
-至此，我们的简单的 web 应用程序已经开发完成。
-
-### 5.2 定义镜像
-
-web 服务所需的两个容器中，其中 redis 镜像可以直接从 Docker Hub 下载现成的，web 镜像我们需要写一个 Dockerfile 来自定义。
-
-创建 Dockerfile：
-
-```
-$ mkdir /home/shiyanlou/webdocker
-$ cd /home/shiyanlou/webdocker
-$ cp -a /home/shiyanlou/webapp ./
-$ vim Dockerfile
-```
-
-输入下面的内容：
+3. 编辑 `app/web/Dockerfile` 文件，添加如下内容：
 
 ```
 FROM python:2.7
-ADD ./webapp /webapp
-WORKDIR /webapp
+COPY ./ /web/
+WORKDIR /web
 RUN pip install -r requirements.txt
-CMD python app.py
+CMD python web.py
 ```
 
-很简单的一个 Dockerfile，基于 Python 2.7 的 Docker 镜像制作，将应用程序拷贝到镜像中并安装所需的Python软件包，最后的CMD用来启动 Flask web 应用。
+上述 `Dockerfile` 定义了一个镜像，该镜像基于 `python:2.7` 镜像制作，在其基础上安装相应的 python 包，并执行 `CMD` 命令来启动该应用程序。
 
-这时候我们可以使用 `docker build` 创建 web 镜像，然后在 Compose 的配置文件中指定镜像名称为 web，也可以在 配置文件中直接指定 Dockerfile， Compose 会自动 build 镜像。
+4. 编辑 `app/docker-compose.yml` 文件：
 
-
-### 5.3 定义服务
-
-我们开始编写 Compose 的配置文件，来定义这个包含两个容器的 Web 服务。
-
-创建 Docker Compose 配置文件：
-
-```
-$ mkdir /home/shiyanlou/composetest
-$ cd /home/shiyanlou/composetest
-$ vim docker-compose.yml
-```
-
-在配置文件中输入下面的内容：
-
-```
-version: '2'
+```txt
 services:
-  web:
-    build: /home/shiyanlou/webdocker
-    ports:
-     - "80:80"
-    volumes:
-     - /home/shiyanlou/webdocker/webapp:/webapp
-    depends_on:
-     - redis
   redis:
-    image: redis
+    image: redis:3.2
+  web:
+    build:
+      context: /home/shiyanlou/app/web
+    depends_on:
+    - redis
+    ports:
+    - 8001:80/tcp
+    volumes:
+    - /home/shiyanlou/app/web:/web:rw
+version: '3.0'
 ```
 
-对这个配置文件进行说明：
+该 `docker-compose.yml` 文件定义了两个服务，分别为 `web` 和 `redis` 服务。并且我们配置 `web` 服务的端口映射，以及挂载相应的目录。 `depends_on` 定义了依赖关系，被依赖服务的容器需要先创建。
 
-1. version 表示配置文件的语法版本，Compose 1.6.0 + 和 Docker 1.10.0+ 开始支持 version 2。
-2. services 下面列举了服务所需的所有容器，每个名称对应一个容器
-3. web 服务1的名称为web
-4. build 指定 Dockerfile 所在的路径，从该路径build当前容器所需的镜像
-5. ports 端口映射
-6. volumes 挂载的数据卷，这里可以不用写，但每次修改 `app.py` 的代码后都需要重新 build web镜像，为了方便调试，我们直接挂载宿主机上的目录到容器中
-7. depends_on 依赖关系，被依赖的容器需要先创建
-8. redis 服务2的名称为redis
-9. image redis 容器所用的镜像
-
-这个配置文件中只使用了最常用的配置信息，详细的配置参数可以见[Compose File](https://docs.docker.com/compose/compose-file/)。
-
-### 5.4 启动服务
-
-完成了服务配置文件后，我们将使用 docker-compose 命令来创建和启动 Web 服务。
-
-首先进入到 Compose 文件所在的目录，执行 `docker-compose up`：
+5. 进入 `app` 目录下，执行 `docker-compose up` 命令来启动服务：
 
 ```
-$ cd /home/shiyanlou/composetest
+$ cd app
 $ docker-compose up
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794189509.png/wm)
+由于此时 `web` 服务的镜像还未构建，所以此时会自动根据 `build`指示，使用 `/home/shiyanlou/app/web/Dockerfile` 文件构建镜像。
 
-这个命令会有很多的输出，依次执行：
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517557297094.png/wm)
 
-1. 获取redis镜像
-2. build web 镜像
-3. 启动 redis 容器
-4. 启动 web 容器并映射端口
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517557398547.png/wm)
 
-服务启动后我们打开浏览器，访问`http://localhost`页面，可以看到 web 服务的输出，每次刷新一次页面计数都会加一：
+运行成功后，此时我们可以打开浏览器，输入 `127.0.0.1:8001`，获取到正确的结果：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795153482.png/wm)
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517368221961.png/wm)
 
-在命令行界面使用 Ctrl-C 终止 `docker-compose up` 的运行，服务停止。
+6. 除此之外，也可以使用 `-d` 参数，即 `docker-compose up -d` 在其在后台运行：
 
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517557688428.png/wm)
 
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/11-5.flv
-@`
+7. 如果需要暂停以及删除容器，可以直接运行 `docker-compose down` 命令即可
 
-## 6. 实验三：Docker Compose 服务管理
-
-上面我们已经学习了 `docker-compose up` 命令用来创建和启动服务，本节实验我们将继续学习其他 Compose 常用的命令。
-
-可以通过 `docker-compose --help` 查看所有命令。其中很多命令都对应着 `docker` 的命令，不同之处一个是针对一组容器，一个是针对单个容器。
-
-
-### 6.1 服务状态查看
-
-#### ps
-
-`docker-compose ps` 命令将列出所有服务的容器及状态信息：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795249846.png/wm)
-
-#### run
-
-`docker-compose run` 命令用来在指定的容器上执行一次指定的命令：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795296632.png/wm)
-
-上述命令启动了web容器后进入到bash程序。使用 ps 命令查看：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795373978.png/wm)
-
-一个新的容器被创建并执行了bash命令，同时该容器依赖的redis容器被自动启动。
-
-#### logs
-
-重新启动所有服务：`docker-compose start`，然后继续后续实验。
-
-用来查看服务中的每个容器的 log 输出：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795429767.png/wm)
-
-
-#### port
-
-输出web容器80端口映射信息：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795591750.png/wm)
-
-#### config
-
-验证服务的配置信息：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795622708.png/wm)
-
-### 6.2 服务生命周期管理
-
-#### stop 与 rm
-
-stop 停止服务并使用rm命令删除服务：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795796667.png/wm)
-
-#### up -d
-
-`-d` 参数可以创建并在后台运行服务中的所有容器：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795835308.png/wm)
-
-#### restart 与 start
-
-restart 重启服务，start 启动停止的服务：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795869647.png/wm)
-
-
-#### kill
-
-向服务发信号，kill 掉web服务：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458795944114.png/wm)
-
-#### pause 和 unpause
-
-重新启动 web 服务，然后实验暂停和恢复服务：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458796025268.png/wm)
-
-
-### 6.3 服务扩展
-
-`docker-compose scale` 命令可以用来创建指定数量的容器。
-
-首先停止并删除先前创建的服务：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458796215189.png/wm)
-
-创建3个redis服务容器和1个web服务容器：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458796255027.png/wm)
-
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/11-6.flv
-@`
+![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517558444487.png/wm)
 
 ## 7. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容：
 
 1. 安装 Docker Compose
 2. 创建 Docker Compose 服务 - Web+redis网站
-3. Docker Compose 服务管理
 
 请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。
