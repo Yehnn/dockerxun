@@ -37,9 +37,9 @@
 
 ### 4.1 实验分析
 
-在本实验中，我们除了安装所需的核心服务外，还安装一个ssh服务提供便捷的管理。
+在本实验中，我们除了安装所需的核心服务外，还安装一个 ssh 服务提供便捷的管理。
 
-为了提高`docker build`速度，我们直接使用阿里云的Ubuntu源。因此要在Dockerfile开始位置增加下面一句命令：
+为了提高 `docker build` 速度，我们直接使用阿里云的 Ubuntu 源。因此要在 Dockerfile 开始位置增加下面一句命令：
 
 ```
 RUN echo "deb http://mirrors.aliyuncs.com/ubuntu/ trusty main universe" > /etc/apt/sources.list
@@ -57,17 +57,17 @@ touch shiyanloumongodb/Dockerfile shiyanlouredis/Dockerfile
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511228797.png/wm)
 
-使用vim/gedit编辑Dockerfile文件，根据我们的需求输入内容。
+使用 vim/gedit 编辑 Dockerfile 文件，根据我们的需求输入内容。
 
-## 9. 实验四：Dockerfile 基本框架
+## 9. Dockerfile 基本框架
 
 ### 9.1 基本框架
 
-按照上一节学习的内容，我们先完成Dockerfile基本框架。
+按照上一节学习的内容，我们先完成 Dockerfile 基本框架。
 
 依次输入下面的基本框架内容：
 
-```
+```dockerfile
 # Version 0.1
 
 # 基础镜像
@@ -84,44 +84,44 @@ RUN apt-get update && apt-get install -yqq supervisor && apt-get clean
 CMD ["supervisord"]
 ```
 
-上面的Dockerfile创建了一个简单的镜像，并使用`Supervisord`启动服务。
+上面的 Dockerfile 创建了一个简单的镜像，并使用 `Supervisord` 启动服务。
 
 ### 9.2 安装SSH服务
 
 首先安装所需要的软件包：
 
-```
+```dockerfile
 RUN apt-get install -yqq openssh-server openssh-client
 ```
 
 创建运行目录：
 
-```
+```dockerfile
 RUN mkdir /var/run/sshd
 ```
 
 设置root密码及允许root通过ssh登陆：
 
-```
+```dockerfile
 RUN echo 'root:shiyanlou' | chpasswd
 RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 ```
 
 
-## 10. 实验五：完成 MongoDB Dockerfile
+## 10. 完成 MongoDB Dockerfile
 
-在上述基本的架构下，我们根据需求可以增加新的内容到Dockerfile中，完成 MongoDB Dockerfile。
+在上述基本的架构下，我们根据需求可以增加新的内容到 Dockerfile 中，完成 MongoDB Dockerfile。
 
 进入到 shiyanloumongodb的目录编辑 Dockerfile：
 
-```
+```bash
 cd /home/shiyanlou/shiyanloumongodb/
 vim Dockerfile
 ```
 
 ### 10.1 安装最新的MongoDB
 
-在Ubuntu最新版本下安装MongoDB非常简单，参考 [MongoDB安装文档](https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/) 。有两种方法：
+在 Ubuntu 最新版本下安装 MongoDB 非常简单，参考 [MongoDB安装文档](https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/) 。有两种方法：
 
 方法一是添加mongodb的源，执行 `apt-get install mongodb-org` 就可以安装下面的所有软件包：
 
@@ -142,7 +142,7 @@ http://labfile.oss-cn-hangzhou-internal.aliyuncs.com/courses/498/mongodb-linux-x
 
 我们完善 Dockerfile，使用 ADD 命令添加压缩包到镜像：
 
-```
+```dockerfile
 RUN mkdir -p /opt
 ADD http://labfile.oss-cn-hangzhou-internal.aliyuncs.com/courses/498/mongodb-linux-x86_64-ubuntu1404-3.2.3.tgz /opt/mongodb.tar.gz
 RUN cd /opt && tar zxvf mongodb.tar.gz && rm -rf mongodb.tar.gz
@@ -169,7 +169,7 @@ EXPOSE 27017 22
 
 ### 10.2 编写`Supervisord`配置文件
 
-添加`Supervisord`配置文件来启动mongodb和ssh，创建文件`/home/shiyanlou/shiyanloumongodb/supervisord.conf`，添加以下内容：
+添加 `Supervisord` 配置文件来启动mongodb和ssh，创建文件`/home/shiyanlou/shiyanloumongodb/supervisord.conf`，添加以下内容：
 
 ```
 [supervisord]
@@ -190,7 +190,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ### 10.3 完整的 Dockerfile
 
-```
+```dockerfile
 # Version 0.1
 
 # 基础镜像
@@ -225,7 +225,7 @@ EXPOSE 27017 22
 CMD ["supervisord"]
 ```
 
-## 11. 实验六：完成 Redis Dockerfile
+## 11. 完成 Redis Dockerfile
 
 在上述基本的架构下，我们根据需求可以增加新的内容到Dockerfile中，完成 Redis Dockerfile。
 
@@ -249,7 +249,7 @@ RUN apt-get install redis-server
 添加对外的端口号：
 
 ```
-EXPOSE 27017 22
+EXPOSE 6379 22
 ```
 
 ### 11.2 编写`Supervisord`配置文件
@@ -275,7 +275,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ### 11.3 完整的 Dockerfile
 
-```
+```dockerfile
 # Version 0.1
 
 # 基础镜像
@@ -302,7 +302,7 @@ CMD ["supervisord"]
 ```
 
 
-## 12. 实验七：从 Dockerfile 创建镜像
+## 12. 从 Dockerfile 创建镜像
 
 ### 12.1 创建 MongoDB 镜像
 
@@ -320,15 +320,17 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511294074.png/wm)
 
-由该镜像创建新的容器mongodb：
+由该镜像创建新的容器 mongodb：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511328107.png/wm)
 
-上述`docker ps`命令的输出可以看到 MongoDB 的端口号已经被自动映射到了本地的 32768 端口，后续步骤我们对 MongoDB 是否启动进行测试。
+上述 `docker ps` 命令的输出可以看到 MongoDB 的端口号已经被自动映射到了本地的 32768 端口，后续步骤我们对 MongoDB 是否启动进行测试。
 
 打开 Xfce 终端中输入下面的命令连接 mongodb 容器中的服务：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511456998.png/wm)
+
+> 如果提示 `command not found mongo` ，可使用 `sudo apt-get install -y mongdb` 安装。
 
 ### 12.2 创建 Redis 镜像
 
@@ -354,9 +356,11 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1709timestamp1457511592966.png/wm)
 
+> 如果提示 `command not found redis-cli` ，就使用 `sudo apt-get install -y redis-server` 安装。
+
 ## 13. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到 QQ群与我们交流：
+本节实验中我们学习了以下内容：
 
 1. MongoDB 的安装
 2. Redis 的安装

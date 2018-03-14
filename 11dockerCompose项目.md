@@ -4,21 +4,19 @@
 
 课程为纯动手实验教程，为了能说清楚实验中的一些操作会加入理论内容。理论内容我们不会写太多，已经有太多好文章了，会精选最值得读的文章推荐给你，在动手实践的同时扎实理论基础。
 
-学习过程中遇到的所有问题，都可随时在[实验楼问答](https://www.shiyanlou.com/questions)中提出，与老师和同学一起交流。
-
 实验环境中可以联网，不受实验楼网络限制。
 
 ## 2. 学习方法
 
 实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
 
-学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容，如果有任何疑问，随时在[实验楼问答](https://www.shiyanlou.com/questions/)中提问，实验楼团队和我都会及时回复大家的所有问题。
+学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
 如果实验开始部分有推荐阅读的材料，请务必先阅读后再继续实验，理论知识是实践必要的基础。
 
 ## 3. 本节内容简介
 
-在本实验里我们将通过实验学习Docker Compose项目。Docker Compose 是一个用来创建和运行多容器应用的工具。使用Compose首先需要编写Compose文件来描述多个容器服务以及之间的关联，然后通过命令根据配置启动所有的容器。
+在本实验里我们将通过实验学习 `Docker Compose` 项目。`Docker Compose` 是一个用来创建和运行多容器应用的工具。使用 `Compose` 首先需要编写 `Compose` 文件来描述多个容器服务以及之间的关联，然后通过命令根据配置启动所有的容器。
 
 Dockerfile 可以定义一个容器，而一个 Compose 的模板文件（YAML格式）可以定义一个包含多个相互关联容器的应用。Compose 项目使用 python 编写，基于后面的实验中我们将学习的 Docker API实现。
 
@@ -29,7 +27,7 @@ Docker Compose 项目地址：[https://github.com/docker/compose](https://github
 1. 安装 Docker Compose
 2. 创建 Docker Compose 服务 - Web+redis 网站
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置`/etc/default/docker`文件中的`DOCKER_OPTS`，然后再重启 Docker：
+在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置 `/etc/default/docker` 文件中的 `DOCKER_OPTS`，然后再重启 Docker：
 
 
 ```
@@ -46,7 +44,7 @@ $ sudo service docker restart
 
 #### Compose
 
-Compose 是定义和运行多容器 `Docker` 应用程序的工具。使用 Compose，可以通过编辑 `YAML` 文件来配置应用程序的服务。它可以用来管理应用程序的生命周期，例如启动，停止以及重构服务。
+`Compose` 是定义和运行多容器 `Docker` 应用程序的工具。使用 `Compose`，可以通过编辑 `YAML` 文件来配置应用程序的服务。它可以用来管理应用程序的生命周期，例如启动，停止以及重构服务。
 
 #### service
 
@@ -74,7 +72,7 @@ Compose 是定义和运行多容器 `Docker` 应用程序的工具。使用 Comp
 
 ### 4.2 安装
 
-在 linux 中，Compose 需要单独安装，我们需要从 github 上下载 Docker Compose 二进制文件。但是官网提供的从 github 上下载的链接速度十分缓慢，在实验环境中，我们已提供该文件，直接使用以下命令进行下载：
+在 Linux 中，Compose 需要单独安装，我们需要从 github 上下载 Docker Compose 二进制文件。但是官网提供的从 github 上下载的链接速度十分缓慢，在实验环境中，我们已提供该文件，直接使用以下命令进行下载：
 
 ```
 $ wget http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/980/software/docker-compose-Linux-x86_64
@@ -132,9 +130,9 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80, debug=True)
 ```
 
-上述代码创建一个十分简单的 web 应用程序。该程序会连接 `redis` 服务，在访问 `/` 页面时，会自动将变量 `number` 加一，该 `INCR` 命令也在 `redis 数据类型` 一节中学习过。
+上述代码创建一个十分简单的 web 应用程序。该程序会连接 `redis` 服务，在访问 `/` 页面时，会自动将变量 `number` 加一。
 
-2. 编辑 `app/web/requirements.txt` 文件，输入如下内容：
+2. 编辑 `app/web/requirements.txt` 文件，输入如下内容
 
 ```txt
 flask==0.10
