@@ -16,7 +16,7 @@
 
 ## 3. 本节内容简介
 
-在本实验里我们将通过实验学习 Docker Swarm 项目。Docker Swarm 是一个Docker集群部署和管理工具，可以把一组 Docker 服务器虚拟成一台容器服务器，并提供标准的 Docker API。所有可以直接连接 Docker 服务器的工具都可以连接 Docker Swarm。
+在本实验里我们将通过实验学习 Docker Swarm 项目。Docker Swarm 是一个 Docker 集群部署和管理工具，可以把一组 Docker 服务器虚拟成一台容器服务器，并提供标准的 Docker API。所有可以直接连接 Docker 服务器的工具都可以连接 Docker Swarm。
 
 由于实验楼只提供了一台实验机，所以无法搭建集群，有部分实验操作只能以单台服务器作为演示，请见谅。
 
@@ -29,7 +29,7 @@
 
 1. [孙宏亮 - 深入浅出Docker Swarm](http://www.csdn.net/article/2015-01-26/2823714)
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置`/etc/default/docker`文件中的`DOCKER_OPTS`，然后再重启 Docker：
+在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置 `/etc/default/docker` 文件中的`DOCKER_OPTS`，然后再重启 Docker：
 
 
 ```
@@ -146,12 +146,6 @@ docker node promote NODE
 # 撤权
 docker node demote NODE
 ```
-
-Docker Swarm 基本操作视频：
-
-`@
-http://labfile.oss.aliyuncs.com/courses/980/week11/5-1.mp4
-@`
 
 ### 3.2 Docker Compose 与 Docker Swarm
 
