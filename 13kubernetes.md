@@ -4,41 +4,39 @@
 
 课程为纯动手实验教程，为了能说清楚实验中的一些操作会加入理论内容。理论内容我们不会写太多，已经有太多好文章了，会精选最值得读的文章推荐给你，在动手实践的同时扎实理论基础。
 
-学习过程中遇到的所有问题，都可随时在[实验楼问答](https://www.shiyanlou.com/questions)中提出，与老师和同学一起交流。
-
 实验环境中可以联网，不受实验楼网络限制。
 
 ## 2. 学习方法
 
-实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
+实验楼的 Docker 课程包含 15 个实验，每个实验都提供详细的步骤和截图，适用于有一定 Linux 系统基础，想快速上手 Docker 的同学。
 
-学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容，如果有任何疑问，随时在[实验楼问答](https://www.shiyanlou.com/questions/)中提问，实验楼团队和我都会及时回复大家的所有问题。
+学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
 如果实验开始部分有推荐阅读的材料，请务必先阅读后再继续实验，理论知识是实践必要的基础。
 
 ## 3. 本节内容简介
 
-在本实验里我们将通过实验学习 Kubernetes 项目。Kubernetes 是谷歌开源的一个 Docker 集群管理工具，支持为Docker容器提供自动扩展，资源调度，服务发现等功能。
+在本实验里我们将通过实验学习 Kubernetes 项目。Kubernetes 是谷歌开源的一个 Docker 集群管理工具，支持为Docker 容器提供自动扩展，资源调度，服务发现等功能。
 
 Kubernetes 的核心概念：
 
 1. Cluster：一组物理机或虚拟机及其他资源构成的资源池。
-2. Node：指的是一个运行Kubernetes的物理机或虚拟机节点
+2. Node：指的是一个运行 Kubernetes 的物理机或虚拟机节点
 3. Pod：最基本的部署单位，对应一个应用的实例，包含若干个容器。
-4. Replication controller：管理Pod的生命周期，控制Pod的扩容缩容。
+4. Replication controller：管理 Pod 的生命周期，控制Pod的扩容缩容。
 5. Service：类似一个基本的负载均衡的路由代理，为 Pod 提供唯一的地址命名，解决服务发现问题。
 6. Label：基于key:value对来组织对象组。
 
-Kubernetes 集群的主要架构是一个中心化的master，
+Kubernetes 集群的主要架构是一个中心化的 master。
 
 由于实验楼只提供了一台实验机，所以无法搭建集群，实验操作只能以单台服务器作为演示，请见谅。
 
-Kubernetes 的知识点非常多，可以写成一本很厚的书，所以本节实验的定位仅仅是帮助你搭建一个Kubernetes集群环境并创建一个多容器的Pod。更深入的学习，可以参考详细的官方教程，好在Kubernetes除了安装教程在国内用起来问题比较多外，其他教程操作性非常好。可以好好利用实验楼的环境进行学习。
+Kubernetes 的知识点非常多，可以写成一本很厚的书，所以本节实验的定位仅仅是帮助你搭建一个 Kubernetes 集群环境并创建一个多容器的Pod。更深入的学习，可以参考详细的官方教程，好在 Kubernetes 除了安装教程在国内用起来问题比较多外，其他教程操作性非常好。可以好好利用实验楼的环境进行学习。
 
 本节中，我们需要依次完成下面几项任务：
 
 1. 部署单节点的 Kubernetes 集群
-2. 在集群上基于Pod创建多个容器
+2. 在集群上基于 Pod 创建多个容器
 
 在开始实验之前，推荐先阅读下面的文章，了解 Kubernetes 的架构特点和概念：
 
@@ -52,7 +50,7 @@ Kubernetes 的知识点非常多，可以写成一本很厚的书，所以本节
 
 
 ```
-# 配置文件中添加 "--registry-mirror=https://n6syp70m.mirror.aliyuncs.com"
+# 配置文件中添加 DOCKER_OPTS="--registry-mirror=https://n6syp70m.mirror.aliyuncs.com -host=tcp://127.0.0.1:4243 -H=unix:///var/run/docker.sock"
 # 重启 Docker
 $ sudo service docker restart
 ```
@@ -65,13 +63,13 @@ $ sudo service docker restart
 
 安装 Kubernetes 的方法很多，最简单的方式是直接使用 Docker 容器，实验楼的环境已经提供了一个 Docker 服务器，我们在这个服务器上部署一个单节点的 Kubernetes 集群。
 
-最终部署的结构图（来自Kubernetes官方文档）：
+最终部署的结构图（来自 Kubernetes 官方文档）：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1715timestamp1458885850715.png/wm)
 
 我们将要安装的 Kubernetes 版本是 1.3.0 的alpha版本。由于谷歌的服务器国内网络无法连接，我们选择了在Docker Hub上的一个 Kubernetes 镜像。
 
-安装方法就是启动一个 Kubernetes 容器，如上图所示，这个容器中包含了所有必要的组件：etcd，master，kubelet等等。
+安装方法就是启动一个 Kubernetes 容器，如上图所示，这个容器中包含了所有必要的组件：etcd，master，kubelet 等等。
 
 这个容器的镜像是`hyperkube-amd64`，启动过程中会不断连接到google的服务器获取所需的镜像 etcd 和 pause，为了避免因为网络原因造成的安装失败，我们需要从国内时速云提供的镜像处下载相应镜像后伪装成google网站的镜像，伪装的方法很简单就是做TAG。
 
@@ -379,7 +377,7 @@ http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/13-5.flv
 
 ## 8. 总结
 
-本节实验中我们学习了以下内容，任何不清楚的地方欢迎到[实验楼问答](https://www.shiyanlou.com/questions)与我们交流：
+本节实验中我们学习了以下内容：
 
 1. 部署单节点的 Kubernetes 集群
 2. 在集群上基于Pod创建多个容器

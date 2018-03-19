@@ -244,13 +244,13 @@ $ docker image ls
 
 ## 7. 实验四：Docker AppArmor 配置
 
-AppArmor 是一个安全框架，类似于SELinux，用来控制应用程序的各种权限，Docker也有一个 AppArmor 的配置文件，用来限制容器中对系统的访问权限，查看配置文件的内容如下：
+AppArmor 是一个安全框架，类似于 SELinux，用来控制应用程序的各种权限，Docker 也有一个 AppArmor 的配置文件，用来限制容器中对系统的访问权限，查看配置文件的内容如下：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458202007300.png/wm)
 
 可以使用`sudo apparmor_status` 命令查看当前系统中 AppArmor 配置的状态。
 
-如果需要可以对 Docker 的AppArmor配置进行修改，但一定要小心，否则会造成很多奇怪的问题。详细的AppArmor文件配置可以参考文章[《Apparmor——Linux内核中的强制访问控制系统》](http://www.cnblogs.com/-Lei/archive/2013/02/24/2923947.html)及[官方wiki](http://wiki.apparmor.net/index.php/Main_Page)。
+如果需要可以对 Docker 的AppArmor配置进行修改，但一定要小心，否则会造成很多奇怪的问题。详细的AppArmor文件配置可以参考文章 。
 
 有的时候不知道如何修改，也可以简单的将AppArmor中的Docker配置为`complain`模式，这种模式下只会记录应用程序的越权操作，而不会阻止。需要首先安装`apparmor-utils`，然后再用`aa-complain`设置：
 
@@ -274,16 +274,16 @@ AppArmor 是一个安全框架，类似于SELinux，用来控制应用程序的�
 
 
 
+## Docker Bench Security
+
+Docker Benchmark Security 是一个用于 docker 安全检查的应用程序，它会去检查下面的这些项目，并提供警告信息。
+
+- 主机配置
+- Docker 守护进程配置
+- Docker 守护进程配置文件
+- 容器镜像和构建文件
+- 容器运行时间
+- Docker 安全操作
 
 
-## Docker security
-
-在审查Docker安全性时，需要考虑四个主要方面：
-
-- 内核的内在安全性及其对命名空间和 cgroups 的支持; 
-
-
-- Docker守护进程本身的攻击面; 
-- 容器配置文件中的漏洞，默认情况下或用户自定义时。
-- 内核的“强化”安全功能以及它们如何与容器交互。
 
