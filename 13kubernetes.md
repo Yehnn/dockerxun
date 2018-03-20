@@ -67,26 +67,26 @@ $ sudo service docker restart
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1715timestamp1458885850715.png/wm)
 
-我们将要安装的 Kubernetes 版本是 1.3.0 的alpha版本。由于谷歌的服务器国内网络无法连接，我们选择了在Docker Hub上的一个 Kubernetes 镜像。
+我们将要安装的 Kubernetes 版本是 1.6.0 的 alpha 版本。由于谷歌的服务器国内网络无法连接，我们选择了在Docker Hub上的一个 Kubernetes 镜像。
 
 安装方法就是启动一个 Kubernetes 容器，如上图所示，这个容器中包含了所有必要的组件：etcd，master，kubelet 等等。
 
-这个容器的镜像是`hyperkube-amd64`，启动过程中会不断连接到google的服务器获取所需的镜像 etcd 和 pause，为了避免因为网络原因造成的安装失败，我们需要从国内时速云提供的镜像处下载相应镜像后伪装成google网站的镜像，伪装的方法很简单就是做TAG。
+这个容器的镜像是`hyperkube`，启动过程中会不断连接到 google 的服务器获取所需的镜像 etcd 和 pause，为了避免因为网络原因造成的安装失败，我们需要从国内时速云提供的镜像处下载相应镜像后伪装成google 网站的镜像，伪装的方法很简单就是做 TAG。
 
 下载所需的镜像：
 
 ```
-docker pull index.tenxcloud.com/google_containers/hyperkube-amd64:v1.3.0-alpha.0
-docker pull index.tenxcloud.com/google_containers/etcd:2.2.1
-docker pull index.tenxcloud.com/google_containers/pause:2.0
+docker pull index.tenxcloud.com/google_containers/hyperkube:v1.6.0-alpha.0
+docker pull index.tenxcloud.com/google_containers/etcd:2.2.5
+docker pull index.tenxcloud.com/google_containers/pause:3.0
 ```
 
 为下载的镜像打上google原版镜像的标签：
 
-```
-docker tag index.tenxcloud.com/google_containers/hyperkube-amd64:v1.3.0-alpha.0 gcr.io/google_containers/hyperkube-amd64:v1.3.0-alpha.0
-docker tag index.tenxcloud.com/google_containers/etcd:2.2.1 gcr.io/google_containers/etcd:2.2.1
-docker tag index.tenxcloud.com/google_containers/pause:2.0 gcr.io/google_containers/pause:2.0
+```dockerfile
+docker tag index.tenxcloud.com/google_containers/hyperkube:v1.6.0-alpha.0 gcr.io/google_containers/hyperkube:v1.6.0-alpha.0
+docker tag index.tenxcloud.com/google_containers/etcd:2.2.5 gcr.io/google_containers/etcd:2.2.5
+docker tag index.tenxcloud.com/google_containers/pause:3.0 gcr.io/google_containers/pause:3.0
 ```
 
 我们下载的镜像列表：
@@ -110,7 +110,7 @@ docker run \
     --privileged=true \
     --name=kubelet \
     -d \
-    gcr.io/google_containers/hyperkube-amd64:v1.3.0-alpha.0 \
+    gcr.io/google_containers/hyperkube:v1.6.0-alpha.0 \
     /hyperkube kubelet \
         --containerized \
         --hostname-override="127.0.0.1" \
@@ -132,8 +132,6 @@ docker run \
 启动的过程需要一定时间，并会创建若干个pause，etcd，apiserver等容器。最终当apiserver容器启动后，整个Kubernetes才算完全启动，可以通过 `docker ps` 查看启动的所有容器。
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1715timestamp1459145796546.png/wm)
-
-
 
 ### 4.3 安装客户端
 

@@ -16,7 +16,7 @@
 
 ## 3. 本节内容简介
 
-Docker 提供的API非常丰富，包括 Registry API，Docker Hub API，Docker OAuth API，Docker Remote API，在本节实验中，我们将通过实验学习 Docker Remote API。Docker Remote API 可以提供 `docker` 命令的全部功能，实验中我们使用 curl 命令来进行测试和学习。
+Docker 提供的 API 非常丰富，包括 Registry API，Docker Hub API，Docker OAuth API，Docker Remote API，在本节实验中，我们将通过实验学习 Docker Remote API。Docker Remote API 可以提供 `docker` 命令的全部功能，实验中我们使用 curl 命令来进行测试和学习。
 
 本节中，我们需要依次完成下面几项任务：
 
@@ -26,36 +26,28 @@ Docker 提供的API非常丰富，包括 Registry API，Docker Hub API，Docker 
 4. 使用 API 管理数据卷：创建，查看，删除等操作
 5. 使用 API 管理网络：创建，查看，删除等操作
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置`/etc/default/docker`文件中的`DOCKER_OPTS`，然后再重启 Docker：
+在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务。
 
-```
-# 配置文件中添加 "--registry-mirror=https://n6syp70m.mirror.aliyuncs.com"
-# 重启 Docker
-$ sudo service docker restart
-```
+查看 Docker API 的版本：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521542295486.png-wm)
 
-后续实验中学习的是 Docker Remote API V1.22 版本，对应的是实验楼环境中的 Docker 1.10 版本。参考 API 官方文档设计实验：
-
-+ [Docker Remote API v 1.22](https://docs.docker.com/engine/reference/api/docker_remote_api_v1.22/)
-
-## 4. 实验一：Docker Remote API 基本概念与认证
+## 4. Docker Remote API 基本概念与认证
 
 
 ### 4.1 监听地址
 
-Docker Remote API 是由 Docker 守护进程提供的，默认情况下 `/etc/default/docker` 配置文件中 Docker 守护进程启动参数会有一个`-H=unix://var/run/docker.sock`，这表示 Docker 守护进程在绑定到本地的一个 Unix Socket 上，可以由本地连接访问 Remote API，如果要提供远程访问，则需要绑定到网络接口上。例如，我们通常会添加下面的配置：
+Docker Remote API 是由 Docker 守护进程提供的，默认情况下 Docker 守护进程可以由本地连接访问 Remote API，如果要提供远程访问，则需要绑定到网络接口上。例如，我们通常会添加下面的配置：
 
 ```
 -H=tcp://0.0.0.0:2375
 ```
 
-这句表示将 Docker 守护进程监听到所有的网络接口的2375端口上。
+这句表示将 Docker 守护进程监听到所有的网络接口的 2375 端口上。
 
 我们修改后的配置文件 `/etc/default/docker` 如下所示：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150454338.png/wm)
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521539684174-wm)
 
 不要忘记重启 Docker 服务让配置文件起作用： `sudo service docker restart`
 
@@ -71,13 +63,13 @@ Docker Remote API 是由 Docker 守护进程提供的，默认情况下 `/etc/de
 
 ### 4.2 使用 TLS 认证
 
-在前面的 `Docker安全` 实验中，我们学习了如何用 TLS 保护 Docker 守护进程，过程与此处完全相同，经过 TLS 服务器端证书保护的 Docker Remote API，需要客户端采用同样CA签发的证书才可以连接。
+在前面的 `Docker安全` 实验中，我们学习了如何用 TLS 保护 Docker 守护进程，过程与此处完全相同，经过 TLS 服务器端证书保护的 Docker Remote API，需要客户端采用同样 CA 签发的证书才可以连接。
 
-### 4.3 Remote API 学习方法
+### 4.3 Remote API 使用方法
 
-后续的实验中，我们将学习最常用的 API 接口，这些API 我们将使用 curl 命令进行实验。
+后续的实验中，我们将学习最常用的 API 接口，这些 API 我们将使用 `curl` 命令进行实验。
 
-例如 `GET /info` API，需要在Xfce 终端中输入下面的命令：
+例如 `GET /info` API，需要在 Xfce 终端中输入下面的命令：
 
 ```
 $ curl http://127.0.0.1:2375/info
@@ -89,6 +81,9 @@ $ curl http://127.0.0.1:2375/info
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150782951.png/wm)
 
+也可以打开 firefox 浏览器，输入如下地址然后回车查看到返回的 json 数据：
+
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521541061909-wm)
 
 对于 `POST ` 操作，仍然可以用 curl 进行测试：
 
@@ -100,7 +95,7 @@ $ curl -X POST -H "Content-Type: application/json" \
   }'  
 ```
 
-执行过程如下，我们会创建一个 redis 容器，并得到JSON格式的输出结果：
+执行过程如下，我们会创建一个 redis 容器，并得到 JSON 格式的输出结果：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150891037.png/wm)
 
@@ -109,7 +104,7 @@ $ curl -X POST -H "Content-Type: application/json" \
 http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-4.flv
 @`
 
-## 5. 实验二：使用 API 管理容器：创建，查看，删除等操作
+## 5. 使用 API 管理容器：创建，查看，删除等操作
 
 
 ### 5.1 查看所有容器
@@ -192,7 +187,7 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 
 可以参照上面三个操作进行实验。
 
-## 6. 实验三：使用 API 管理镜像：创建，查看，删除等操作
+## 6. 使用 API 管理镜像：创建，查看，删除等操作
 
 ### 6.1 查看所有镜像
 
@@ -239,12 +234,7 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 4. `docker build`：`POST /build`
 5. `docker search`：`GET /images/search`
 
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-6.flv
-@`
-
-## 7. 实验四：使用 API 管理数据卷：创建，查看，删除等操作
+## 7. 使用 API 管理数据卷：创建，查看，删除等操作
 
 ### 7.1 查看数据卷
 
@@ -270,12 +260,7 @@ http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-6.flv
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153611072.png/wm)
 
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-7.flv
-@`
-
-## 8. 实验五：使用 API 管理网络：创建，查看，删除等操作
+## 8. 使用 API 管理网络：创建，查看，删除等操作
 
 ### 8.1 列出系统中所有的网络
 
@@ -314,11 +299,6 @@ http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-7.flv
 首先把关联的容器断开，然后删除网络：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459154148073.png/wm)
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-8.flv
-@`
 
 ## 9. 总结
 
