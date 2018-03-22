@@ -26,7 +26,21 @@ Docker 提供的 API 非常丰富，包括 Registry API，Docker Hub API，Docke
 4. 使用 API 管理数据卷：创建，查看，删除等操作
 5. 使用 API 管理网络：创建，查看，删除等操作
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务。
+对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
+
+首先，我们需要添加编辑 `/etc/docker/daemon.json` 文件，加入如下内容：
+
+```bash
+{
+  "registry-mirrors": ["https://n6syp70m.mirror.aliyuncs.com"]
+}
+```
+
+修改之后，需要重启 `docker` 服务，让修改生效。使用如下命令：
+
+```bash
+$ sudo service docker restart
+```
 
 查看 Docker API 的版本：
 
@@ -45,13 +59,19 @@ Docker Remote API 是由 Docker 守护进程提供的，默认情况下 Docker �
 
 这句表示将 Docker 守护进程监听到所有的网络接口的 2375 端口上。
 
-我们修改后的配置文件 `/etc/default/docker` 如下所示：
+修改配置文件 `/etc/default/docker` ：
+
+```bash
+$ sudo vi /etc/default/docker
+```
 
 ![实验楼](https://dn-simplecloud.shiyanlou.com/87971521539684174-wm)
 
-不要忘记重启 Docker 服务让配置文件起作用： `sudo service docker restart`
+> `-H=unix:///var/run/docker.sock` 是允许本地访问连接。
+>
+> 不要忘记重启 Docker 服务让配置文件起作用： `sudo service docker restart`
 
-重启后我们可以进行测试：
+重启后我们可以进行测试：			
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150490614.png/wm)
 
@@ -67,7 +87,7 @@ Docker Remote API 是由 Docker 守护进程提供的，默认情况下 Docker �
 
 ### 4.3 Remote API 使用方法
 
-后续的实验中，我们将学习最常用的 API 接口，这些 API 我们将使用 `curl` 命令进行实验。
+后续的实验中，我们将学习最常用的 API 接口，我们将使用 `curl` 命令进行实验。
 
 例如 `GET /info` API，需要在 Xfce 终端中输入下面的命令：
 
@@ -92,24 +112,20 @@ $ curl -X POST -H "Content-Type: application/json" \
   http://127.0.0.1:2375/containers/create \
   -d '{
         "Image": "redis"
-  }'  
+  }'
 ```
+
+> 如果提示没有镜像的话，可以先使用 docker pull redis 拉取镜像。
 
 执行过程如下，我们会创建一个 redis 容器，并得到 JSON 格式的输出结果：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150891037.png/wm)
-
-操作演示视频
-`@
-http://labfile.oss-cn-hangzhou.aliyuncs.com/courses/498/video/14-4.flv
-@`
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521614320222.png-wm)
 
 ## 5. 使用 API 管理容器：创建，查看，删除等操作
 
-
 ### 5.1 查看所有容器
 
-`GET /cont
+`GET /containers/json` 
 
 实验需求是查找所有的容器（包含关机状态的容器），显示最后创建的一个，同时返回容器的大小。
 
@@ -127,6 +143,12 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 
 注意：这里不加 \ 会报错
 
+类比命令：
+
+```
+$ docker container ls -a -n 1 -s
+```
+
 操作过程截图：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459150967484.png/wm)
@@ -135,55 +157,56 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 
 `POST /containers/create`
 
-创建容器的参数非常多，可以回忆下`docker run`的参数。
+创建容器的参数非常多，可以回忆下 `docker run` 的参数。
 
-实验需求创建一个 nginx 容器，将容器的80端口映射到宿主机80端口，挂载宿主机的 `/home/shiyanlou/data` 目录作为数据卷到容器中的`/data`目录。
+实验需求创建一个 nginx 容器，将容器的 80 端口映射到宿主机 80 端口，挂载宿主机的 `/home/shiyanlou/data` 目录作为数据卷到容器中的 `/data ` 目录。
 
 该接口的所有参数都使用 JSON 格式。
 
 定义输入的参数：
 
 ```
-{
+$ curl -X POST -H "Content-Type: application/json" \
+http://127.0.0.1:2375/containers/create?name=test_nginx \
+-d '{
     "Image": "nginx",
-    "Mounts": [
-        {
-            "Source": "/home/shiyanlou/data",
-            "Destination": "/data"
-        }
-    ],
     "HostConfig": {
-        "PortBindings": { "80/tcp": [{ "HostPort": "80" }] }
+        "Binds": ["/home/shiyanlou/data:/data"],
+        "PortBindings": {"80/tcp": [{"HostPort": "81"}]}
     }
-}
+}'
 ```
 
 操作过程：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153021567.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521703653568.png-wm)
 
-创建后使用 `docker inspect` 验证。
+创建后使用 `docker container inspect` 验证。
+
+此时用浏览器访问地址 `localhost:81` 可以看到 nginx 的页面：
+
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521703795744-wm)
 
 ### 5.3 删除指定的容器
 
 `DELETE /containers/(id)`
 
-此处我们尝试删除一个运行中的容器，需要使用参数`force=1`。
+如果尝试删除一个运行中的容器，需要使用参数`force=1`。
 
 操作过程首先查找容器ID，然后使用 curl 执行 DELETE 操作：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153142948.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521704169448.png-wm)
 
 ### 5.4 其他接口
 
 其他常用的接口使用方法，主要参数都是容器的ID，下面列出常用 docker 命令对应的 API：
 
-1. `docker inspect`：`GET /containers/(id)/json`
-2. `docker top`：`GET /containers/(id)/top`
-3. `docker logs`：`GET /containers/(id)/logs`
-4. `docker export`：`GET /containers/(id)/export`
-5. `docker start`：`POST /containers/(id)/start`
-6. `docker attach`：`POST /containers/(id)/attach`
+1. `docker container inspect`：`GET /containers/(id)/json`
+2. `docker container top`：`GET /containers/(id)/top`
+3. `docker container logs`：`GET /containers/(id)/logs`
+4. `docker container export`：`GET /containers/(id)/export`
+5. `docker container start`：`POST /containers/(id)/start`
+6. `docker container attach`：`POST /containers/(id)/attach`
 
 可以参照上面三个操作进行实验。
 
@@ -195,7 +218,11 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 
 查看当前系统中的所有镜像：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153213483.png/wm)
+```bash
+$ curl http://127.0.0.1:2375/images/json | python -mjson.tool 
+```
+
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521704613733-wm)
 
 ### 6.2 拉取镜像
 
@@ -204,10 +231,10 @@ $ curl http://127.0.0.1:2375/containers/json\?all\=1\&limit\=1\&size\=1
 从 Docker Hub 拉取 busybox 镜像：
 
 ```
-curl -X POST http://127.0.0.1:2375/images/create?fromImage=busybox
+$ curl -X POST http://127.0.0.1:2375/images/create\?fromImage\=busybox:ubuntu-14.04
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153317873.png/wm)
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521706974381-wm)
 
 该接口执行的过程中，镜像下载的进度也会输出到屏幕上。
 
@@ -228,13 +255,21 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 
 其他常用的接口使用方法，主要参数都是容器的ID，下面列出常用 docker 命令对应的 API：
 
-1. `docker inspect`：`GET /images/(name)/json`
-2. `docker tag`：`POST /images/(name)/tag`
-3. `docker push`: `POST /images/(name)/push`
-4. `docker build`：`POST /build`
+1. `docker image inspect`：`GET /images/(name)/json`
+2. `docker image tag`：`POST /images/(name)/tag`
+3. `docker image push`: `POST /images/(name)/push`
+4. `docker image build`：`POST /build`
 5. `docker search`：`GET /images/search`
 
 ## 7. 使用 API 管理数据卷：创建，查看，删除等操作
+
+### 7.2 创建数据卷
+
+`POST /volumes/create`
+
+创建一个名字为 shiyanlou 的数据卷，可以在返回信息中看到数据卷的挂载点
+
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521705366146.png-wm)
 
 ### 7.1 查看数据卷
 
@@ -242,23 +277,15 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 
 查看系统中的所有数据卷：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153445304.png/wm)
-
-### 7.2 创建数据卷
-
-`POST /volumes/create`
-
-创建一个名字为shiyanlou的数据卷，可以在返回信息中看到数据卷的挂载点
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153615772.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521705472113.png-wm)
 
 ### 7.3 删除数据卷
 
 `DELETE /volumes/(name)`
 
-删除刚刚创建的数据卷shiyanlou:
+删除刚刚创建的数据卷 shiyanlou：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153611072.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521705583679.png-wm)
 
 ## 8. 使用 API 管理网络：创建，查看，删除等操作
 
@@ -268,7 +295,7 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 
 列出系统中所有的网络:
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153658834.png/wm)
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521705724622-wm)
 
 ### 8.2 创建新的网络
 
@@ -278,19 +305,33 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 
 创建过程：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459153884028.png/wm)
+```bash
+$ curl -X POST -H "Content-Type: application/json" \
+http://127.0.0.1:2375/networks/create \
+-d '{
+    "Name": "shiyanlou",
+    "Driver": "bridge",
+    "IPAM": {"Config": [{"Subnet": "172.10.0.0/16"}]}
+}'
+```
+
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521707347839.png-wm)
 
 ### 8.3 连接容器到网络
 
 `POST /networks/(id)/connect`
 
-创建一个redis容器：
+创建一个 redis 容器：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459154187545.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521708131392.png-wm)
 
 连接容器到新创建的shiyanlou网络：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459154155538.png/wm)
+```bash
+curl -X POST -H "Content-Type: application/json" http://127.0.0.1:2375/networks/shiyanlou/connect -d '{"Container": "e132d"}'
+```
+
+> e132d 为 容器 id。
 
 ### 8.4 删除网络
 
@@ -298,7 +339,14 @@ curl -X DELETE http://127.0.0.1:2375/images/busybox
 
 首先把关联的容器断开，然后删除网络：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1716timestamp1459154148073.png/wm)
+```bash
+$ curl -X POST -H "Content-Type: application/json" http://127.0.0.1:2375/networks/shiyanlou/disconnect -d '{"Container": "e132d"}'
+
+$ curl -X DELETE http://127.0.0.1:2375/networks/shiyanlou
+$ curl http://127.0.0.1:2375/networks/shiyanlou
+```
+
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521708475096.png-wm)
 
 ## 9. 总结
 

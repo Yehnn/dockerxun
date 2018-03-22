@@ -8,7 +8,7 @@
 
 ## 2. 学习方法
 
-实验楼的Docker课程包含15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
+实验楼的Docker课程包含 15个实验，每个实验都提供详细的步骤和截图，适用于有一定Linux系统基础，想快速上手Docker的同学。
 
 学习方法是多实践，多提问。启动实验后按照实验步骤逐步操作，同时理解每一步的详细内容。
 
@@ -25,15 +25,21 @@
 3. 实现 `docker build` 命令
 
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置`/etc/default/docker`文件中的`DOCKER_OPTS`，然后再重启 Docker：
+对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
 
+首先，我们需要添加编辑 `/etc/docker/daemon.json` 文件，加入如下内容：
+
+```bash
+{
+  "registry-mirrors": ["https://n6syp70m.mirror.aliyuncs.com"]
+}
 ```
-# 配置文件中添加 "--registry-mirror=https://n6syp70m.mirror.aliyuncs.com"
-# 重启 Docker
+
+修改之后，需要重启 `docker` 服务，让修改生效。使用如下命令：
+
+```bash
 $ sudo service docker restart
 ```
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
 
 ## 4. 实验一： `docker-py` 安装与使用
 
@@ -41,12 +47,34 @@ $ sudo service docker restart
 
 `docker-py` 的详细文档见： <http://docker-py.readthedocs.org/en/latest/>
 
+### 配置虚拟环境
+
+使用 `virtualenv` 配置虚拟环境：
+
+```bash
+$ cd ~
+# 安装 virtualenv
+$ sudo pip install virtualenv
+
+# 使用 python3.4 ,venv 为虚拟环境目录名
+$ vitualenv -p /usr/bin/python3.4 venv
+
+# 激活虚拟环境
+$ source venv/bin/activate
+```
+
+### 安装 ipython
+
+```bash
+$ pip install ipython
+```
+
 ### 4.1 安装 `docker-py`
 
 打开实验环境的 Xfce 终端，输入下面的命令进行安装：
 
 ```
-sudo pip install docker-py==1.8.0
+pip install docker
 ```
 
 ### 4.2 基本使用
@@ -57,17 +85,17 @@ sudo pip install docker-py==1.8.0
 
 打开 Xfce 终端，输入 ipython，本节后续步骤在 ipython 下进行操作。
 
-首先创建和初始化 `Client` 对象：
+首先实例化客户端：
 
 
 ```
-from docker import Client
-cli = Client(base_url='tcp://127.0.0.1:4243')
+import docker
+client=docker.DockerClient(base_url='tcp://127.0.0.1:2375')
 ```
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid3858labid1717timestamp1459218544531.png/wm)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1521714956880.png-wm)
 
-`cli` 是一个 `Client` 的实例，创建时需要输入连接的 URL 参数，如果连接本地可以使用默认的`unix://var/run/docker.sock` 地址，连接远程可以使用类似 `tcp://127.0.0.1:4243` 这样的地址，注意由于实验楼环境中的 Docker 配置文件修改过，没有监听在默认的2375端口，而是选择4243端口，所以在连接前请先查看 Docker 的配置文件 `/etc/default/docker`。
+> 此处配置一个连接地址 `tcp://127.0.0.1:2375` 实例化一个客户端。
 
 使用 `Client` 对象创建一个 ubuntu 容器：
 
