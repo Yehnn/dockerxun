@@ -18,3 +18,4 @@ docker
 - [ ] 13kubernetes
 - [ ] 14dockerAPI
 - [ ] 15基于dockerAPI开发应用
+- [ ] 16Jenkinsfile构建 CI CD
