@@ -16,15 +16,15 @@
 
 ## 3. 本节内容简介
 
-第一节实验中我们已经接触了一些镜像的概念，简单的说镜像就是一个容器的只读模板，用来创建容器。当运行容器时需要指定镜像，如果本地没有该镜像，则会从Docker Registry下载。默认查找的是Docker Hub。Docker的镜像是增量的修改，每次创建新的镜像都会在老的镜像上面构建一个增量的`层`，使用到的技术是`Another Union File System(AUFS)`，感兴趣的同学可以学习文档 [InfoQ:剖析Docker文件系统：Aufs与Devicemapper](http://www.infoq.com/cn/articles/analysis-of-docker-file-system-aufs-and-devicemapper/)。
+第一节实验中我们已经接触了一些镜像的概念，简单的说镜像就是一个容器的只读模板，用来创建容器。当运行容器时需要指定镜像，如果本地没有该镜像，则会从 Docker Registry 下载。默认查找的是 Docker Hub。Docker 的镜像是增量的修改，每次创建新的镜像都会在老的镜像上面构建一个增量的`层`，使用到的技术是`Another Union File System(AUFS)`，感兴趣的同学可以学习文档 [InfoQ:剖析Docker文件系统：Aufs与Devicemapper](http://www.infoq.com/cn/articles/analysis-of-docker-file-system-aufs-and-devicemapper/)。
 
 本节中，我们需要依次完成下面几项任务：
 
-1. 使用Docker Hub查找和下载镜像
-2. 创建镜像
+1. 查看镜像列表
+2. 查看镜像详细信息
 3. 查看镜像信息
-4. 导入和导出镜像
-5. 修改镜像
+4. 拉取镜像
+5. 构建镜像
 6. 删除镜像
 
 ## 4. 镜像
@@ -217,15 +217,15 @@ $ docker image rm ubuntu
 
 需要注意的是，如果该镜像正在被一个容器所使用，需要将容器删除才能成功的删除镜像。
 
-## 9. 总结
+## 5. 总结
 
 本节实验中我们学习了以下内容：
 
-1. 使用Docker Hub查找和下载镜像
-2. 创建镜像
+1. 查看镜像列表
+2. 查看镜像详细信息
 3. 查看镜像信息
-4. 导入和导出镜像
-5. 修改镜像
+4. 拉取镜像
+5. 构建镜像
 6. 删除镜像
 
 请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。

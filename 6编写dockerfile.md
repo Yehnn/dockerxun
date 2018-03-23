@@ -23,11 +23,11 @@
 1. Dockerfile 基本语法
 2. Dockerfile 创建镜像流程
 
-## 2. Dockerfile
+## 4. Dockerfile
 
 Dockerfile 是一个文本文件，其中包含我们为了构建 Docker 镜像而手动执行的所有命令。Docker 可以从 Dockerfile 中读取指令来自动构建镜像。我们可以使用 `docker build` 命令来创建一个自动构建。
 
-### 2.1 上下文
+### 4.1 上下文
 
 在 Docker 容器及镜像管理一节中我们有提到构建镜像的一些知识。
 
@@ -41,7 +41,7 @@ $ mkdir dir1 && cd dir1
 
 下面我们简单介绍 Dockerfile 中常用的指令。
 
-### 2.2 FROM
+### 4.2 FROM
 
 使用 FROM 指令指定一个基础镜像，后续指令将在此镜像的基础上运行：
 
@@ -49,7 +49,7 @@ $ mkdir dir1 && cd dir1
 FROM ubuntu:14.04
 ```
 
-### 2.3 USER
+### 4.3 USER
 
 在 Dockerfile 中可以指定一个用户，后续的 `RUN`，`CMD` 以及 `ENTRYPOINT` 指令都会使用该用户去执行，但是该用户必须提前存在。
 
@@ -57,7 +57,7 @@ FROM ubuntu:14.04
 USER shiyanlou
 ```
 
-### 2.4 WORKDIR
+### 4.4 WORKDIR
 
 除了指定用户之外，还可以使用 `WORKDIR` 指定工作目录，对于 `RUN`，`CMD`，`COPY`，`ADD` 指令将会在指定的工作目录中去执行。也可以理解为命令执行时的当前目录。
 
@@ -65,7 +65,7 @@ USER shiyanlou
 WORKDIR /
 ```
 
-### 2.5 RUN，CMD，ENTRYPOINT
+### 4.5 RUN，CMD，ENTRYPOINT
 
 RUN 指令用于执行命令，该指令有两种形式：
 
@@ -103,7 +103,7 @@ CMD ["-l"]
 
 上述构建的镜像，在我们使用 `docker run image` 时等同于 `docker run image ls -a -l` 命令。使用 `docker run image -i -s` 命令等同于 `docker run image ls -a -i -s` 指令。即 CMD 指令的值会被当作 ENTRYPOINT 指令的参数附加到 ENTRYPOINT 指令的后面。
 
-### 2.6 COPY 和 ADD
+### 4.6 COPY 和 ADD
 
 COPY 和 ADD 都用于将文件，目录等复制到镜像中。使用方式如下：
 
@@ -121,7 +121,7 @@ COPY ["<src>",... "<dest>"]
 
 COPY 和 ADD 的不同之处在于，ADD 可以添加远程路径的文件，并且 `<src>` 为可识别的压缩格式，如 gzip 或 tar 归档文件等，ADD 会自动将其解压缩为目录。
 
-### 2.7 ENV
+### 4.7 ENV
 
 ENV 指令用于设置环境变量：
 
@@ -130,7 +130,7 @@ ENV <key> <value>
 ENV <key>=<value> <key>=<value>...
 ```
 
-### 2.7 VOLUME
+### 4.8 VOLUME
 
 VOLUME 指令将会创建指定的挂载目录，在容器运行时，将创建相应的匿名卷：
 
@@ -140,7 +140,7 @@ VOLUME /data1 /data2
 
 上述指令将会在容器运行时，创建两个匿名卷，并挂载到容器中的 /data1 和 /data2 目录上。
 
-### 2.8 EXPOSE
+### 4.9 EXPOSE
 
 EXPOSE 指定在容器运行时监听指定的网络端口，它与 `docker run` 命令的 `-p` 参数不一样，并不实际映射端口，只是将该端口暴露出来，允许外部或其它的容器进行访问。
 
@@ -148,7 +148,7 @@ EXPOSE 指定在容器运行时监听指定的网络端口，它与 `docker run`
 EXPOSE port
 ```
 
-## 3. 从 Dockerfile 创建镜像
+## 5. 从 Dockerfile 创建镜像
 
 了解了上面一些常用于构建 Dockerfile 的指令之后，可以通过这些指令来构建一个镜像，如下所示，搭建一个 ssh 服务:
 
@@ -188,7 +188,7 @@ $ docker run -itd -p 10001:22 --rm sshd:test
 
 这时就可以通过公网的 IP 地址，以及端口 10001，并且使用用户 `shiyanlou`，密码 `123456`，远程通过 `ssh` 连接到该容器中了。
 
-## 8. 总结
+## 6. 总结
 
 本节实验中我们学习了以下内容：
 

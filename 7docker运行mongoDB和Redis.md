@@ -1,4 +1,4 @@
-# 使用Docker运行MongoDB和Redis
+# 使用 Docker 运行 MongoDB 和 Redis
 
 ## 1. 课程说明
 
@@ -59,9 +59,9 @@ touch shiyanloumongodb/Dockerfile shiyanlouredis/Dockerfile
 
 使用 vim/gedit 编辑 Dockerfile 文件，根据我们的需求输入内容。
 
-## 9. Dockerfile 基本框架
+## 5. Dockerfile 基本框架
 
-### 9.1 基本框架
+### 5.1 基本框架
 
 按照上一节学习的内容，我们先完成 Dockerfile 基本框架。
 
@@ -86,7 +86,7 @@ CMD ["supervisord"]
 
 上面的 Dockerfile 创建了一个简单的镜像，并使用 `Supervisord` 启动服务。
 
-### 9.2 安装SSH服务
+### 5.2 安装SSH服务
 
 首先安装所需要的软件包：
 
@@ -108,7 +108,7 @@ RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/ss
 ```
 
 
-## 10. 完成 MongoDB Dockerfile
+## 6. 完成 MongoDB Dockerfile
 
 在上述基本的架构下，我们根据需求可以增加新的内容到 Dockerfile 中，完成 MongoDB Dockerfile。
 
@@ -119,7 +119,7 @@ cd /home/shiyanlou/shiyanloumongodb/
 vim Dockerfile
 ```
 
-### 10.1 安装最新的MongoDB
+### 6.1 安装最新的MongoDB
 
 在 Ubuntu 最新版本下安装 MongoDB 非常简单，参考 [MongoDB安装文档](https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/) 。有两种方法：
 
@@ -167,7 +167,7 @@ MongoDB 和 SSH 对外的端口：
 EXPOSE 27017 22
 ```
 
-### 10.2 编写`Supervisord`配置文件
+### 6.2 编写`Supervisord`配置文件
 
 添加 `Supervisord` 配置文件来启动mongodb和ssh，创建文件`/home/shiyanlou/shiyanloumongodb/supervisord.conf`，添加以下内容：
 
@@ -188,7 +188,7 @@ Dockerfile中增加向镜像内拷贝该文件的命令：
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ```
 
-### 10.3 完整的 Dockerfile
+### 6.3 完整的 Dockerfile
 
 ```dockerfile
 # Version 0.1
@@ -225,7 +225,7 @@ EXPOSE 27017 22
 CMD ["supervisord"]
 ```
 
-## 11. 完成 Redis Dockerfile
+## 7. 完成 Redis Dockerfile
 
 在上述基本的架构下，我们根据需求可以增加新的内容到Dockerfile中，完成 Redis Dockerfile。
 
@@ -236,7 +236,7 @@ cd /home/shiyanlou/shiyanlouredis/
 vim Dockerfile
 ```
 
-### 11.1 安装 Redis
+### 7.1 安装 Redis
 
 由于 MongoDB 中我们已经学习了如何通过二进制压缩包安装最新版本MongoDB的过程，在此安装 Redis 我们直接使用 Ubuntu 源中默认的 Redis 版本。
 
@@ -252,7 +252,7 @@ RUN apt-get install redis-server
 EXPOSE 6379 22
 ```
 
-### 11.2 编写`Supervisord`配置文件
+### 7.2 编写`Supervisord`配置文件
 
 添加`Supervisord`配置文件来启动 redis-server 和 ssh，创建文件`/home/shiyanlou/shiyanlouredis/supervisord.conf`，添加以下内容：
 
@@ -273,7 +273,7 @@ Dockerfile中增加向镜像内拷贝该文件的命令：
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ```
 
-### 11.3 完整的 Dockerfile
+### 7.3 完整的 Dockerfile
 
 ```dockerfile
 # Version 0.1
@@ -302,9 +302,9 @@ CMD ["supervisord"]
 ```
 
 
-## 12. 从 Dockerfile 创建镜像
+## 8. 从 Dockerfile 创建镜像
 
-### 12.1 创建 MongoDB 镜像
+### 8.1 创建 MongoDB 镜像
 
 进入到`/home/shiyanlou/shiyanloumongodb/`目录，执行创建命令。
 
@@ -332,7 +332,7 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 > 如果提示 `command not found mongo` ，可使用 `sudo apt-get install -y mongdb` 安装。
 
-### 12.2 创建 Redis 镜像
+### 8.2 创建 Redis 镜像
 
 进入到`/home/shiyanlou/shiyanlouredis/`目录，执行创建命令。
 
@@ -358,7 +358,7 @@ docker build -t shiyanloumongodb:0.1 /home/shiyanlou/shiyanloumongodb/
 
 > 如果提示 `command not found redis-cli` ，就使用 `sudo apt-get install -y redis-server` 安装。
 
-## 13. 总结
+## 9. 总结
 
 本节实验中我们学习了以下内容：
 

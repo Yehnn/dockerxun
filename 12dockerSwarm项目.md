@@ -29,26 +29,30 @@
 
 1. [孙宏亮 - 深入浅出Docker Swarm](http://www.csdn.net/article/2015-01-26/2823714)
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置 `/etc/default/docker` 文件中的`DOCKER_OPTS`，然后再重启 Docker：
+对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
 
+首先，我们需要添加编辑 `/etc/docker/daemon.json` 文件，加入如下内容：
 
+```bash
+{
+  "registry-mirrors": ["https://n6syp70m.mirror.aliyuncs.com"]
+}
 ```
-# 配置文件中添加 "--registry-mirror=https://n6syp70m.mirror.aliyuncs.com"
-# 重启 Docker
+
+修改之后，需要重启 `docker` 服务，让修改生效。使用如下命令：
+
+```bash
 $ sudo service docker restart
 ```
+## 4. 概述
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
-
-## 2. 概述
-
-### 2.1 Swarm
+### 4.1 Swarm
 
 Swarm 是 Docker 发布的管理集群的工具，一个集群由多个运行 `Docker` 的主机组成。下面我们简单介绍 Swarm 中的一些关键概念。
 
 Swarm 在 Docker 1.12 之后被集成到 Docker Engine 中，又被称为 `swarm mode`，后面我们所说的 swarm 都是指 swarm mode。
 
-### 2.2 关键概念
+### 4.2 关键概念
 
 #### Role
 
@@ -76,9 +80,9 @@ Swarm 在 Docker 1.12 之后被集成到 Docker Engine 中，又被称为 `swarm
 
 对于在上一节我们学习的 Docker Compose 定义的应用程序来说，从技术角度来讲，就可以说我们一直在使用堆栈。但是 Docker Compose 是运行在单个主机上，而这里我们所说的堆栈可以运行在一个集群中，即是一个分布式的应用程序。
 
-## 3. Docker Swarm
+## 5. Docker Swarm
 
-### 3.1 环境搭建
+### 5.1 环境搭建
 
 #### 创建一个 swarm
 
@@ -147,7 +151,7 @@ docker node promote NODE
 docker node demote NODE
 ```
 
-### 3.2 Docker Compose 与 Docker Swarm
+### 5.2 Docker Compose 与 Docker Swarm
 
 对于 Docker Compose 来说，即使我们可以定义多容器的应用程序，但是多个容器依然只能在单个主机上工作。
 
@@ -200,7 +204,7 @@ $ docker stack deploy -c docker-compose.yml app
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517562145047.png/wm)
 
-### 3.3 管理堆栈和服务
+### 5.3 管理堆栈和服务
 
 在创建一个集群之后，`docker stack` 和 `docker service` 两个命令集就变得可用了，他们分别用于管理堆栈和管理服务。
 
@@ -254,7 +258,7 @@ $ docker service rm app_redis app_web
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517565257416.png/wm)
 
-## 7. 总结
+## 6. 总结
 
 本节实验中我们学习了以下内容：
 

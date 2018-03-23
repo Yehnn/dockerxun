@@ -22,7 +22,7 @@
 2. 自定义网络实现容器互联
 4. host 和 none 网络的使用
 
-## 3. 网络
+## 4. 网络
 
 > 在开始下面的内容之前，为了不出现命名上的冲突，也为了显示更为直观并且方便演示示例，首先需要将前面创建或启动的容器全部删除。可以使用下面两条命令达到这一效果：
 
@@ -44,7 +44,7 @@ $ docker network ls
 
 如上图所示，三种默认的网络，分别为 `bridge`，`host`，`none`。
 
-### 3.1 bridge
+### 4.1 bridge
 
 `bridge`，即桥接网络，在安装 `docker` 后会创建一个桥接网络，该桥接网络的名称为 `docker0`。我们可以通过下面两条命令去查看该值。
 
@@ -169,7 +169,7 @@ $ sudo iptables -t filter -A DOCKER ! -i docker0 -o docker0 -p tcp -d 192.168.0.
     $ sudo iptables -D DOCKER 1
     ```
 
-### 3.2 自定义网络
+### 4.2 自定义网络
 
 对于默认的 `bridge` 网络来说，使用端口可以通过端口映射的方式来实现，并且在上面的内容中我们也演示了容器之间通过 `IP` 地址互相进行通信。但是对于默认的 `bridge` 网络来说，每次重启容器，容器的 `IP` 地址都是会发生变化的，因为对于默认的 `bridge` 网络来说，并不能在启动容器的时候指定 ip 地址，在启动单个容器时并不容易看到这一区别。
 
@@ -300,7 +300,7 @@ $ docker run -it --rm busybox --ip 192.168.0.100 --rm busybox /bin/sh
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517198404575.png/wm)
 
-### 3.3 host 和 none
+### 4.3 host 和 none
 
 `host` 网络，容器可以直接访问主机上的网络。
 
@@ -322,7 +322,7 @@ $ docker run -it --nerwork none --rm busybox /bin/sh
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517214875513.png/wm)
 
-## 8. 总结
+## 5. 总结
 
 本节实验中我们学习了以下内容：
 

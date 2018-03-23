@@ -313,8 +313,8 @@ http:
 
 本节实验中我们学习了以下内容：
 
-1. Docker Registry的部署和配置
+1. Docker Registry 的部署和配置
 2. 使用 Registry 管理仓库和镜像
-3. Docker Registry的配置
+3. Docker Registry 的配置
 
 请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。

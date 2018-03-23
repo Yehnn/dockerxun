@@ -27,17 +27,21 @@ Docker Compose 项目地址：[https://github.com/docker/compose](https://github
 1. 安装 Docker Compose
 2. 创建 Docker Compose 服务 - Web+redis 网站
 
-在实验之前，为了能够顺利连接 docker.io 我们使用阿里云的 Docker Hub 加速服务，在服务器上配置 `/etc/default/docker` 文件中的 `DOCKER_OPTS`，然后再重启 Docker：
+对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
 
+首先，我们需要添加编辑 `/etc/docker/daemon.json` 文件，加入如下内容：
 
+```bash
+{
+  "registry-mirrors": ["https://n6syp70m.mirror.aliyuncs.com"]
+}
 ```
-# 配置文件中添加 "--registry-mirror=https://n6syp70m.mirror.aliyuncs.com"
-# 重启 Docker
+
+修改之后，需要重启 `docker` 服务，让修改生效。使用如下命令：
+
+```bash
 $ sudo service docker restart
 ```
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1713timestamp1458794123429.png/wm)
-
 ## 4. Docker Compose
 
 ### 4.1 概述
@@ -198,11 +202,11 @@ $ docker-compose up
 
 ![此处输入图片的描述](https://doc.shiyanlou.com/document-uid377240labid4104timestamp1517558444487.png/wm)
 
-## 7. 总结
+## 5. 总结
 
 本节实验中我们学习了以下内容：
 
 1. 安装 Docker Compose
-2. 创建 Docker Compose 服务 - Web+redis网站
+2. 创建 Docker Compose 服务 - Web+redis 网站
 
 请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。

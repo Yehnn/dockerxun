@@ -192,7 +192,11 @@ $ docker run hello-world
 
 如上图中标注出的提示信息所示，提示我们安装正确。
 
-## 10. 总结
+## 5. 总结
+
+1. Docker 基本概念
+2. 安装 Docker
+3. Docker 运行 Hello World
 
 本节实验主要讲解了 docker 的相关概念以及如何安装 docker。
 

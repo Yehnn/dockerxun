@@ -20,16 +20,31 @@
 
 本节中，我们需要依次完成下面几项任务：
 
-1. 使用证书加固Docker Daemon安全
+1. 使用证书加固 Docker Daemon安 全
 2. 设置特权级运行的容器：`--privileged=true`
 3. 设置容器权限白名单：`--cap-add`
-4. Docker AppArmor配置
+4. Docker Bench Security
 
 Docker 的安全已经随着容器技术的推广受到越来越多的关注，本节实验中我们将体会几个最常用的Docker安全相关的配置。在开始实验之前，推荐阅读关于Docker 安全性的文章：
 
 1. [Flux7 Docker系列教程（五）：Docker 安全](https://segmentfault.com/a/1190000002711383)
 2. [Docker安全性探讨与实践：实践篇](http://www.infoq.com/cn/news/2014/09/docker-safe)
 
+对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
+
+首先，我们需要添加编辑 `/etc/docker/daemon.json` 文件，加入如下内容：
+
+```bash
+{
+  "registry-mirrors": ["https://n6syp70m.mirror.aliyuncs.com"]
+}
+```
+
+修改之后，需要重启 `docker` 服务，让修改生效。使用如下命令：
+
+```bash
+$ sudo service docker restart
+```
 ## 4. 使用证书加固Docker Daemon安全
 
 Docker Daemon 启动的服务对外提供的是 HTTP 接口，为了增强 HTTP 连接的安全性，我们通过设置 TLS 来认证客户端是可信的，只有通过证书验证的客户端才可以连接 Docker Daemon。
@@ -186,7 +201,7 @@ $ docker image ls
 ```
 
 
-## 5. 实验二：设置特权级运行的容器：`--privileged=true`
+## 5. 设置特权级运行的容器：`--privileged=true`
 
 
 有的时候我们需要容器具备更多的权限，比如操作内核模块，控制swap交换分区，挂载USB磁盘，修改MAC地址等。本实验中我们给予容器这些权限，仅仅通过一个简单的`--privileged=true` 的参数。
@@ -197,26 +212,26 @@ $ docker image ls
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201529861.png/wm)
 
-尝试修改MAC地址，会收到`Operation not permitted`报错信息：
+尝试修改 MAC 地址，会收到 `Operation not permitted` 报错信息：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201559515.png/wm)
 
-尝试创建并挂载一个iso文件，同样，也会收到错误信息：
+尝试创建并挂载一个 iso 文件，同样，也会收到错误信息：
 
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201611619.png/wm)
 
-从shiyanlou容器中退出，我们创建一个具备`--privileged=true` 参数的prishiyanlou容器，看是否有不同：
+从 shiyanlou 容器中退出，我们创建一个具备 `--privileged=true`  参数的 prishiyanlou 容器，看是否有不同：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201662092.png/wm)
 
 
-在这个容器中，我们首先尝试修改MAC地址，修改成功后使用ifconfig命令查看验证：
+在这个容器中，我们首先尝试修改 MAC 地址，修改成功后使用 ifconfig 命令查看验证：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201689816.png/wm)
 
 
-再次创建一个iso文件，并mkfs.ext3 格式化分区后，mount命令挂载到`/mnt`，验证发现可以成功挂载：
+再次创建一个 iso 文件，并 mkfs.ext3 格式化分区后，mount 命令挂载到 `/mnt`，验证发现可以成功挂载：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201747483.png/wm)
 
@@ -225,58 +240,32 @@ $ docker image ls
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201783453.png/wm)
 
-## 6. 实验三：设置容器权限白名单：`--cap-add`
+## 6. 设置容器权限白名单：`--cap-add`
 
-`--privileged=true` 的权限非常大，接近于宿主机的权限，为了防止用户的滥用，需要增加限制，只提供给容器必须的权限。此时Docker 提供了权限白名单的机制，使用`--cap-add`添加必要的权限。
+`--privileged=true` 的权限非常大，接近于宿主机的权限，为了防止用户的滥用，需要增加限制，只提供给容器必须的权限。此时 Docker 提供了权限白名单的机制，使用 `--cap-add` 添加必要的权限。
 
-为了能够修改MAC地址，我们给予新的容器capshiyanlou一个`NET_ADMIN`的权限。创建该容器，注意命令中的参数：
+为了能够修改 MAC 地址，我们给予新的容器 capshiyanlou 一个 `NET_ADMIN ` 的权限。创建该容器，注意命令中的参数：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201833312.png/wm)
 
 
-尝试修改MAC地址，验证`--cap-add`是否起到作用：
+尝试修改MAC地址，验证 `--cap-add ` 是否起到作用：
 
 ![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201867193.png/wm)
 
-退出容器后，可以在`docker inspect`命令中查看容器的必要配置：
+退出容器后，可以在 `docker container inspect` 命令中查看容器的必要配置：
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458201894538.png/wm)
+```bash
+$ docker container inspect -f {{.HostConfig.Privileged}} capshiyanlou
+false
 
-## 7. 实验四：Docker AppArmor 配置
+$ docker container inspect -f {{.HostConfig.CapAdd}} capshiyanlou
+{[NET_ADMIN]}
+```
 
-AppArmor 是一个安全框架，类似于 SELinux，用来控制应用程序的各种权限，Docker 也有一个 AppArmor 的配置文件，用来限制容器中对系统的访问权限，查看配置文件的内容如下：
+## 7. Docker Bench Security
 
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458202007300.png/wm)
-
-可以使用`sudo apparmor_status` 命令查看当前系统中 AppArmor 配置的状态。
-
-如果需要可以对 Docker 的AppArmor配置进行修改，但一定要小心，否则会造成很多奇怪的问题。详细的AppArmor文件配置可以参考文章 。
-
-有的时候不知道如何修改，也可以简单的将AppArmor中的Docker配置为`complain`模式，这种模式下只会记录应用程序的越权操作，而不会阻止。需要首先安装`apparmor-utils`，然后再用`aa-complain`设置：
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458202234347.png/wm)
-
-![此处输入图片的描述](https://dn-anything-about-doc.qbox.me/document-uid13labid1712timestamp1458202248789.png/wm)
-
-这种设置可以快速解决一些问题，比如默认情况下Docker环境中无法使用gdb调试中的断点。但这种方式并不推荐，相当于把AppArmor的安全关闭。
-
-
-## 8. 总结
-
-本节实验中我们学习了以下内容：
-
-1. 使用证书加固Docker Daemon安全
-2. 设置特权级运行的容器：`--privileged=true`
-3. 设置容器权限白名单：`--cap-add`
-4. Docker AppArmor配置
-
-请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。
-
-
-
-## Docker Bench Security
-
-Docker Benchmark Security 是一个用于 docker 安全检查的应用程序，它会去检查下面的这些项目，并提供警告信息。
+Docker Benchmark Security 是一个用于 docker 安全检查的应用程序，它会去检查下面的这些项目，并提供警告信息。它是一个开源工具，参见 [GitHub-Docker Bench Security](https://github.com/docker/docker-bench-security/) 。
 
 - 主机配置
 - Docker 守护进程配置
@@ -284,6 +273,50 @@ Docker Benchmark Security 是一个用于 docker 安全检查的应用程序，�
 - 容器镜像和构建文件
 - 容器运行时间
 - Docker 安全操作
+
+
+接下来我们就来安装 Docker Bench Security：
+
+```bash
+$ docker run -it --net host --pid host --userns host --cap-add audit_control \
+    -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+    -v /var/lib:/var/lib \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /usr/lib/systemd:/usr/lib/systemd \
+    -v /etc:/etc --label docker_bench_security \
+    docker/docker-bench-security
+```
+
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521798043023-wm)
+
+会显示出很多的提示信息：
+
+![实验楼](https://dn-simplecloud.shiyanlou.com/87971521798200035-wm)
+
+> `PASS` ：这些项目都是很稳固的，不需要关注，pass 越多越好。
+>
+> `WARN` ：需要修复的项目。
+>
+> `INFO` ：如果这些项目和你的设置和安全需要相关，建议检查和修复这些项目。
+>
+> `NOTE` ：一些建议。
+
+## 8. 总结
+
+本节实验中我们学习了以下内容：
+
+1. 使用证书加固 Docker Daemon安 全
+2. 设置特权级运行的容器：`--privileged=true`
+3. 设置容器权限白名单：`--cap-add`
+4. Docker Bench Security
+
+请务必保证自己能够动手完成整个实验，只看文字很简单，真正操作的时候会遇到各种各样的问题，解决问题的过程才是收获的过程。
+
+
+
+
+
+
 
 
 
