@@ -34,9 +34,9 @@
 
 这篇Docker 官方的文章详细介绍了Docker的运行机制和必要的组件。不涉及到很底层的技术，可以做为对Docker的一个初步了解。
 
-## 2. Docker 概念
+## 5. Docker 概念
 
-### 2.1 容器技术
+### 5.1 容器技术
 
 `Linux` 容器技术很早就有了，比较有名的是被集成到主流 `Linux` 内核中的 `LXC` 项目。容器通过对操作系统的资源访问进行限制，构建成独立的资源池，让应用运行在一个相对隔离的空间里，同时容器间也可以进行通信。
 
@@ -50,7 +50,7 @@
 
 下面我们开始介绍 `Docker` 中的几个基本概念。
 
-### 2.2 镜像
+### 5.2 镜像
 
 `Docker` 的镜像概念类似于虚拟机里的镜像，是一个只读的模板，一个独立的文件系统，包括运行容器所需的数据，可以用来创建新的容器。
 
@@ -58,13 +58,13 @@
 
 用户可以通过编写 `Dockerfile` 创建新的镜像，也可以直接从类似 `github` 的 `Docker Hub` 上下载镜像使用。
 
-### 2.3 容器
+### 5.3 容器
 
 `Docker` 容器是由 `Docker` 镜像创建的运行实例。`Docker` 容器类似虚拟机，可以支持的操作包括启动，停止，删除等。每个容器间是相互隔离的，但隔离的效果比不上虚拟机。容器中会运行特定的应用，包含特定应用的代码及所需的依赖文件。
 
 在 `Docker` 容器中，每个容器之间的隔离使用 `Linux` 的 `CGroups` 和 `Namespaces` 技术实现的。其中 `CGroups` 对 `CPU`，内存，磁盘等资源的访问限制，`Namespaces` 提供了环境的隔离。
 
-### 2.4 仓库
+### 5.4 仓库
 
 如果你使用过 `git` 和 `github` 就很容易理解 `Docker` 的仓库概念。`Docker` 仓库相当于一个 `github` 上的代码库。
 
@@ -72,13 +72,13 @@
 
 仓库支持的操作类似 `git`，创建了新的镜像后，我们可以 `push` 提交到仓库，也可以从指定仓库 `pull` 拉取镜像到本地。
 
-## 3. 安装
+## 6. 安装
 
 `Docker` 有两个版本，`Community Edition(CE)` 和 `Enterprise Edition(EE)`。即社区版和企业版本。我们将介绍 Ubuntu 中社区版的安装过程。
 
 > 在实验环境中，已经安装了 docker-ce。
 
-### 3.1 设置存储库
+### 6.1 设置存储库
 
 首先更新 `apt` 软件包索引：
 
@@ -104,7 +104,7 @@ $ curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key
 $ sudo add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
 ```
 
-### 3.2 安装 docker-ce
+### 6.2 安装 docker-ce
 
 查看此时 `docker` 的版本信息:
 
@@ -160,7 +160,7 @@ $ sudo usermod -aG docker shiyanlou
 $ sudo su shiyanlou
 ```
 
-### 3.3 启动 Docker 服务
+### 6.3 启动 Docker 服务
 
 对于 `Docker` 的镜像仓库来说，国内访问速度较慢，我们添加一个阿里云提供的 `Docker` 镜像加速器。
 
@@ -178,7 +178,7 @@ $ sudo su shiyanlou
 $ sudo service docker restart
 ```
 
-## 4. Hello world
+## 7. Hello world
 
 在安装之后，我们可以通过运行一个 `hello-world` 的镜像来验证 `Docker CE` 是否被正确的安装，使用如下命令：
 
@@ -192,7 +192,7 @@ $ docker run hello-world
 
 如上图中标注出的提示信息所示，提示我们安装正确。
 
-## 5. 总结
+## 8. 总结
 
 1. Docker 基本概念
 2. 安装 Docker
