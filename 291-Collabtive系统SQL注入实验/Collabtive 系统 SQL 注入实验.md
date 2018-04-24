@@ -1,12 +1,20 @@
+---
+show: step
+version: 0.1
+enable_checker: true
+---
+
 # Collabtive 系统 SQL 注入实验  
 
-## 实验介绍 
+## 一、实验介绍 
 
 SQL注入技术是利用web应用程序和数据库服务器之间的接口来篡改网站内容的攻击技术。通过把SQL命令插入到Web表单提交框、输入域名框或页面请求框中，最终欺骗服务器执行恶意的SQL命令。
 
 在这个实验中,我们使用的web应用程序称为Collabtive。我们禁用Collabtive的若干防护措施，这样我们就创建了一个容易受到SQL注入攻击的Collabtive版本。经过我们的人工修改,我们就可以通过实验分析许多web开发人员的常见错误与疏忽。在本实验中学生的目标是找到方法来利用SQL注入漏洞实施攻击，并通过掌握的技术来阻止此类攻击的发生。
 
-## 预备知识 
+## 二、预备知识 
+
+在开始实验前我们需要做一些准备工作。
 
 ###1、 SQL语言 
 
@@ -45,14 +53,13 @@ sudo mysqld_safe
 启动Apache：
 
 ```
-    sudo service apache2 start
-	
-	密码：dees
+sudo service apache2 start
+密码：dees（这里不需要输入密码）
 ```
 配置DNS：
 
 ```
-    sudo vim /etc/hosts
+sudo vim /etc/hosts
 ```
 >	按i进入编辑模式，编辑文件
 
@@ -60,20 +67,20 @@ sudo mysqld_safe
 
 >	完成后使用 :wq 保存并退出
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495829085?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.4-1](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495829085?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 配置网站文件：
 
 ```
-    sudo vim /etc/apache2/conf.d/lab.conf
-	sudo service apache2 restart  重启服务
+sudo vim /etc/apache2/conf.d/lab.conf
+sudo service apache2 restart  重启服务
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495872447?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.4-2](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495872447?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 >访问测试：http://www.sqllabcollabtive.com
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495906863?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.4-3](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429495906863?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 >用户名：admin；密码：admin
 
@@ -85,7 +92,7 @@ sudo mysqld_safe
 
 把`magic_quotes_gpc=On` 改为 `magic_quotes_gpc = Off`
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429496018375?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.4-4](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429496018375?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 >关于magic_quotes_off函数：
 
@@ -94,15 +101,42 @@ sudo mysqld_safe
 >如果此时你对输入的数据作了addslashes()处理，那么在输出的时候就必须使用stripslashes()去掉多余的反斜杠。
 
 
-对于PHP `magic_quotes_gpc=off` 的情况
-
-必须使用addslashes()对输入数据进行处理，但并不需要使用stripslashes()格式化输出，因为addslashes()并未将反斜杠一起写入数据库，只是帮助mysql完成了sql语句的执行。
+对于PHP `magic_quotes_gpc=off` 的情况必须使用addslashes()对输入数据进行处理，但并不需要使用stripslashes()格式化输出，因为addslashes()并未将反斜杠一起写入数据库，只是帮助mysql完成了sql语句的执行。
 
 [科普](http://baike.baidu.com/link?url=kSUFbQgmubERiql4ftrJk_i9-PuTormAXb3oz0y-YL9qT9uLnDcU_Yi5LTmBoSMD_-I7M_UskS5QJVrmebz1ca)
 
-## 实验内容 
+```checker
+- name: check mysql
+  script: |
+    #!/bin/bash
+    ps -ef|grep -v grep|grep mysqld_safe
+  error: mysql not start
+- name: check /etc/hosts
+  script: |
+    #!/bin/bash
+    grep sqllabcollabtive /etc/hosts
+  error: 没有配置DNS
+- name: check lab.conf
+  script: |
+    #!/bin/bash
+    ls /etc/apache2/conf.d/lab.conf
+    grep sqllabcollabtive /etc/apache2/conf.d/lab.conf
+- name: check php.ini
+  script: |
+    #!/bin/bash
+    grep magic_quotes_gpc /etc/php5/apache2/php.ini|grep Off
+  error: 没有配置php策略
+```
 
-### lab1 select语句的sql注入 
+## 三、实验内容 
+
+下面主要进行如下实验：
+
+- select 语句的 sql 注入
+- update 语句的 sql 注入
+- 防御策略
+
+### 1、lab1 select语句的sql注入 
 
 访问：www.sqllabcollabtive.com；当我们知道用户而不知道到密码的时候，我们可以怎么登陆？
 
@@ -117,7 +151,7 @@ sudo vim /var/www/SQL/Collabtive/include/class.user.php
 
 找到其中第`375`行
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429496701782?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-1](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429496701782?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 ```
 $sel1 = mysql_query ("SELECT ID, name, locale, lastlogin, gender, FROM user WHERE (name = '$user' OR email = '$user') AND pass = '$pass'");
@@ -136,11 +170,11 @@ sudo service apache2 restart
 
 我们在`$user `后面加上`) #`  这样就会只验证用户名，后面的会被`#`注释
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497033988?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-2](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497033988?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 点击登陆以后，我们就可以绕过密码直接登录：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497124130?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-3](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497124130?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
 思考：
@@ -165,17 +199,15 @@ admin') union update user set name='test' #
 
 登陆失败
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497357973?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-4](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497357973?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 #### 原因解释 
 
 MySQL机制：update不支持union语法。
 
-
-
 `最后记得把我们的 sudo vim /var/www/SQL/Collabtive/include/class.user.php 文件·修改回来，否则后面的实验都没有办法登录啦。`
 
-### lab2 update语句的sql注入 
+### 2、lab2 update语句的sql注入 
 
 Collabtive平台中可以更新用户信息，我们要实现通过自己的用户去修改别人的用户信息；
 
@@ -247,15 +279,15 @@ Company 处填：
 	注：这里的 9d4e1e23bd5b727046a9e3b4b7db57bd8d6ee684 就是pass的md5值；
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497692793?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-1](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497692793?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 点击修改，然后我们退出当前用户，使用ted用户登录，这个时候ted用户的密码应该是pass；
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497732589?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-2](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497732589?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497752475?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-3](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497752475?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
-### 防御策略 
+### 3、防御策略 
 
 SQL注入漏洞的根本问题是数据与代码的分离失败，因此我们可以针对这个原因进行防御
 
@@ -267,8 +299,6 @@ SQL注入漏洞的根本问题是数据与代码的分离失败，因此我们�
     sudo vim /etc/php5/apache2/php.ini
 	sudo service apache2 restart
 ```
-
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid912time1429497803055?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 科普：[magic_quotes_gpc防注入方法](http://jingyan.baidu.com/article/49711c6144857efa441b7cd5.html)
 
