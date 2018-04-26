@@ -1,10 +1,18 @@
+---
+show: step
+version: 0.1
+enable_checker: true
+---
+
 # Collabtive系统跨站请求伪造攻击实验
 
-## 实验简介
+## 一、实验简介
+
+**注意：进入实验需要等待一点时间才会出现界面，弹窗提示直接选择 `use default config` 按钮。** 
 
 帮助学生理解跨站请求伪造(CSRF或XSRF)攻击。CSRF攻击涉及用户受害者,受信任的网站,恶意网站。受害者与受信任的站点和用户拥有一个活跃的会话同时访问恶意网站。恶意网站注入一个HTTP请求为受信任的站点到受害者用户会话牺牲其完整性。
 
-## 实验背景
+## 二、实验背景
 
 CSRF攻击总是涉及到三个角色:信赖的网站(Collabtive),受害者的session或cookie,和一个恶意网站。受害者会同时访问恶意网站与受信任的站点会话的时候。攻击包括一系列步骤，如下:
 
@@ -15,10 +23,10 @@ CSRF攻击总是涉及到三个角色:信赖的网站(Collabtive),受害者的se
 5. web浏览器将自动连接会话cookie,因为它是恶意的要求针对可信站点。
 6. 受信任的站点如果受到CSRF攻击,攻击者的一些恶意的请求会被攻击者发送给信任站点。
 
-恶意网站可以建立HTTP GET或POST请求到受信任的站点。一些HTML标签,比如img iframe,框架,形式没有限制的URL,可以在他们的使用属性中。img,iframe,框架可用于锻造GET请求。HTML表单标签可用于构造POST请求。构造GET请求是相对容易的,因为它甚至不需要JavaScript的帮助;构造POST请求需要JavaScript。因为Collabtive只针对后者,本实验室的任务将只涉及HTTP POST请求；
+恶意网站可以建立HTTP GET或POST请求到受信任的站点。一些HTML标签,比如img iframe,框架,形式没有限制的URL,可以在他们的使用属性中。img,iframe,框架可用于锻造GET请求。HTML表单标签可用于构造                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    00000000000POST请求。构造GET请求是相对容易的,因为它甚至不需要JavaScript的帮助;构造POST请求需要JavaScript。因为Collabtive只针对后者,本实验室的任务将只涉及HTTP POST请求；
 
 
-## 预备知识
+## 三、预备知识
 
 ### 什么是CSRF？
 
@@ -97,7 +105,7 @@ sudo service apache2 restart
 
 这个时候我们就可以同时访问两个网站了~~~
 
-## 实验任务
+## 四、实验任务
 
 实验环境介绍：第一个网站是脆弱Collabtive网站www.csrflabcollabtive.com在虚拟机访问。第二个网站是攻击者的恶意网站,用于攻击Collabtive。本网站内可以通过www.csrflabattacker.com访问虚拟机。
 
