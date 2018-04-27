@@ -1,12 +1,14 @@
 # Elgg 系统 CSRF 攻击实验
 
-## 实验介绍
+## 一、实验介绍
+
+**注意：进入实验需要等待一点时间才会出现界面，弹窗提示直接选择 `use default config` 按钮。** 
 
 本次实验主要用于帮助学生理解跨站请求伪造（CSRF或XSRF）攻击。
 
 CSRF攻击涉及用户受害者,受信任的网站和恶意网站。当受害者与受信任的站点拥有一个活跃的会话同时，如果访问恶意网站，恶意网站会注入一个HTTP请求到为受信任的站点，从而破话用户的信息。
 
-## 实验背景
+## 二、实验背景
 
 CSRF 攻击总是涉及到三个角色:信赖的网站（Collabtive）、受害者的 session 或 cookie 以及一个恶意网站。受害者会同时访问恶意网站与受信任的站点会话的时候。攻击包括一系列步骤，如下:
 
@@ -24,7 +26,7 @@ CSRF 攻击总是涉及到三个角色:信赖的网站（Collabtive）、受害�
 
 恶意网站可以建立HTTP GET或POST请求到受信任的站点。一些HTML标签,比如img iframe,框架,形式没有限制的URL,可以在他们的使用属性中。img,iframe,框架可用于构造GET请求。HTML表单标签可用于构造POST请求。构造GET请求是相对容易的,因为它甚至不需要JavaScript的帮助;构造POST请求需要JavaScript。因为Collabtive只针对后者,本实验室的任务将只涉及HTTP POST请求。.
 
-## 预备知识：什么是CSRF 
+## 三、预备知识：什么是CSRF 
 
 [百度百科--CSRF](http://baike.baidu.com/link?url=h64nEfsH4Ok8FiOlsEcJuO8UUzbBSy9MeepkimruEVTv0wE7gM54P-0C1tTlUlylwqUXKxK0NBSP6eeyT_Qt7_)
 
@@ -34,20 +36,16 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
 
 危害：造成的危害包括：个人隐私泄露以及财产安全，以受害者的名义发送邮件、消息、盗取账号，甚至于购买商品，虚拟货币转账等。
 
-## 环境搭建 
+## 四、环境搭建 
 启动 mysql 服务器：
 ```
 	sudo mysqld_safe
 ```
-> 密码：dees
-
 启动服务：
 
 ```
     sudo service apache2 start 
 ```
->密码：dees
-
 配置DNS解析：
 
 ```
@@ -64,6 +62,13 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
 
 > 使用 :wq 退出vim编辑器
 
+在里面添加内容：
+
+```
+127.0.0.1       www.csrflabattacker.com
+127.0.0.1       www.csrflabelgg.com
+```
+
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430185692487?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 网站配置：
@@ -72,7 +77,17 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
     sudo vim /etc/apache2/conf.d/lab.conf	
 ```
 
->密码：dees
+```
+<VirtualHost *:80>
+ServerName www.csrflabattacker.com
+DocumentRoot /var/www/CSRF/Attacker/
+</VirtualHost>
+
+<VirtualHost *:80>
+ServerName www.csrflabelgg.com
+DocumentRoot /var/www/CSRF/elgg/
+</VirtualHost>
+```
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430185749829?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
@@ -80,8 +95,6 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
 ```	
 	sudo service apache2 restart
 ```
-
-> 密码：dees
 
 打开firefox浏览器，访问测试：
 
@@ -98,19 +111,53 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
     Charlie	charlie		seedcharlie	
     Samy	samy		seedsamy
 
-## 实验任务 
+后文我们需要使用到 `live http headers` 工具，先安装一下。点击浏览器的 tools-》add-ones ，在搜索框输入 live http header 就可以找到，点击 install 即可安装，安装后重启浏览器就可以了。截图如下：
+
+![3.4-1](https://dn-simplecloud.shiyanlou.com/uid/8797/1524647286699.png-wm)
+
+点击浏览器 tools-》 live http headers 可以打开这个抓包工具，打开过后再访问你要抓包的网站就可以在livehttpheaders 窗口看到抓取的信息了。
+
+```checker
+- name: check hosts
+  script: |
+    #!/bin/bash
+    grep csrflabattacker /etc/hosts
+    grep csrflabelgg /etc/hosts
+  error: 没有配置/etc/hosts文件
+- name: check lab.conf
+  script: |
+    #!/bin/bash
+    ls /etc/apache2/conf.d/lab.conf
+    grep Attacker /etc/apache2/conf.d/lab.conf
+    grep elgg /etc/apache2/conf.d/lab.conf
+  error: 没有lab.conf文件或者没有配置lab.conf文件
+- name: check mysqld_safe
+  script: |
+    #!/bin/bash
+    ps -ef |grep -v grep|grep mysqld_safe
+  error: 没有启动mysqld_safe
+- name: check apache2
+  script: |
+    #!/bin/bash
+    ps -ef |grep -v grep|grep apache2
+  error: 没有启动apache2
+```
+
+## 五、实验任务 
+
+环境搭建好了，就可以开始我们的实验任务了。
 
 ### lab1 添加好友 
 
 实验内容：两个用户，Alice与Boby。Boby想与Alice成为好友，但是Alice拒绝添加Boby；这时Boby需要发送一个URL给Alice，当Alice访问这个URL后，Boby就自动添加到好友列表中（注意Alice不用点击任何东西，只要访问URL就自动添加好友）。
 
-首先我们要知道如何添加用户：
+首先我们要知道如何添加好友：
 
 > 使用 admin seedelgg 进行登录，然后添加 boby 用户；
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186055112?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1524817629266.png-wm)
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186078696?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1524817743628.png-wm)
 
 然后我们需要知道，添加用户时是使用的什么请求；使用 LiveHttpHeader 抓包：
 
@@ -133,7 +180,7 @@ CSRF(Cross-site request forgery)：中文名称：跨站请求伪造，也被称
 添加 boby 用户的链接,例如：
 
 ```
-http://www.csrflabelgg.com/action/friends/add?friend=40&__elgg_ts=1429794173&__elgg_token=194fee1a60560fd22f06943948fd9ee1
+http://www.csrflabelgg.com/action/friends/add?friend=40&__elgg_ts=1524817660&__elgg_token=f581b9c0b6fab2aa1c5b5c64a7b4cf0c
 ```
 
 这样我们就可以构造一个页面，让 Alice 用户访问以后，就会添加 boby 为好友。
@@ -145,10 +192,12 @@ http://www.csrflabelgg.com/action/friends/add?friend=40&__elgg_ts=1429794173&__e
 输入下面代码：
 
 ```
-	<html>
-	<img src="http://www.csrflabelgg.com/action/friends/add?friend=40&__elgg_ts=1429794173&__elgg_token=194fee1a60560fd22f06943948fd9ee1">
-	</html>
+<html>
+<img src="http://www.csrflabelgg.com/action/friends/add?friend=40&__elgg_ts=1524817660&__elgg_token=f581b9c0b6fab2aa1c5b5c64a7b4cf0c">
+</html>
 ```
+> 注意：这里的链接根据你实际获取到的链接填写
+
 Alice 用户访问前：
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186343735?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
@@ -161,6 +210,15 @@ Alice 用户访问后：
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186395717?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
+```checker
+- name: check hack.html
+  script: |
+    #!/bin/bash
+    file_name="/var/www/CSRF/Attacker/hack.html"
+    ls $file_name
+    grep friends $file_name
+  error: hack.html不存在或者文件内容不对
+```
 
 ### lab2 修改用户信息 
 
@@ -172,7 +230,7 @@ Alice 用户访问后：
 
 >    打开Firefox菜单栏的Tools中的LiveHttpHeader
 >    勾选Capture
->    编辑用户资料，点击sava；
+>    编辑用户资料，点击save；
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186466149?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
@@ -257,6 +315,16 @@ Boby用户访问后：
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid9094labid936time1430186621990?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
+```checker
+- name: check csrf.html
+  script: |
+    #!/bin/bash
+    file_name="/var/www/CSRF/Attacker/csrf.html"
+    ls $file_name
+    grep csrf_hack $file_name
+  error: csrf.html不存在或者文件内容不对
+```
+
 #### 思考 
 
 问题1：Alice用户使用csrf攻击boby用户，需要知道Boby用户的guid，但是Alice没有Boby的密码，她可以通过什么办法来获取Boby用户的guid？
@@ -309,7 +377,7 @@ Elgg系统就是使用 加密令牌 机制保护系统；它嵌入两个参数 _
 	echo elgg_view('input/hidden', array('name' => '__elgg_token', 'value' => $token));
 	echo elgg_view('input/hidden', array('name' => '__elgg_ts', 'value' => $ts));
 ```
-上面的防御其实并不够，我们还可以通过给 加密参数，时间戳，用户sessionID加上HASH函数；在elgg系统中就有这样的机制。
+上面的防御其实并不够，我们还可以通过给加密参数，时间戳，用户sessionID加上HASH函数；在elgg系统中就有这样的机制。
 
 > hash函数：一般翻译做"散列"，也有直接音译为"哈希"的，就是把任意长度的输入（又叫做预映射， pre-image），通过散列算法，变换成固定长度的输出，该输出就是散列值。这种转换是一种压缩映射，也就是，散列值的空间通常远小于输入的空间，不同的输入可能会散列成相同的输出，而不可能从散列值来唯一的确定输入值。简单的说就是一种将任意长度的消息压缩到某一固定长度的消息摘要的函数。
 
@@ -457,6 +525,20 @@ step4:打开elgg系统的防御策略：
 
 接着再次尝试CSRF攻击将失效！
 
+```checker
+- name: check securitytoken.php
+  script: |
+    #!/bin/bash
+    file_name="/var/www/CSRF/elgg/views/default/input/securitytoken.php"
+    ls $file_name
+    grep "elgg_view" $file_name
+  error: securitytoken.php 不存在或者文件内容不对 
+- name: check actions.php
+  script: |
+    #!/bin/bash
+    sed -n "311p" /var/www/CSRF/elgg/engine/lib/actions.php|grep "#"
+  error: actions.php 没有修改
+```
 
 ## 作业 
 
