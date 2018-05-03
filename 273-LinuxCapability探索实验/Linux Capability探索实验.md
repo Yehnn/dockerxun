@@ -1,6 +1,4 @@
 ##Linux Capability探索实验
-***
-
 ###一、实验描述
 
 本实验中，学生将感受到linux capability功能在访问控制上的优势，掌握使用Capability达到遵守最小权限原则的目的，并分析linux中基于Capability访问控制的设计。
@@ -9,21 +7,21 @@
 
 ####2.1 安装Libcap
 
-libcap库能够使用户级别的程序与capability特性做交互，一些linux发行版不包括这个库，如果你发现没有 /usr/include/sys/capability.h 这个文件，那么运行以下命令进行安装：
+`libcap` 库能够使用户级别的程序与 `capability` 特性做交互，一些linux发行版不包括这个库，如果你发现没有 `/usr/include/sys/capability.h` 这个文件（在我们的实验环境中是有这个文件的），那么运行以下命令进行安装：
 
-```
-# wget http://labfile.oss.aliyuncs.com/libcap-2.21.tar.gz
-# tar xvf libcap-2.21.tar.gz
-# cd libcap-2.21
-# make (this will compile libcap)
-# make install
+```bash
+$ wget http://labfile.oss.aliyuncs.com/libcap-2.21.tar.gz
+$ tar xvf libcap-2.21.tar.gz
+$ cd libcap-2.21
+$ sudo make 
+$ sudo make install
 ```
 
 在本实验中，你需要熟悉以下命令：
 
-+ setcap: 给一个文件分配capabilities
-+ getcap: 显示文件所带的capabilities
-+ getpcaps: 显示线程所在的capabilities
++ `setcap`: 给一个文件分配capabilities
++ `getcap`: 显示文件所带的capabilities
++ `getpcaps`: 显示线程所在的capabilities
 
 ### 三、 实验内容
 在一个capability系统中，当一个程序运行时，对应的线程会初始化一系列capabilities（令牌）。当线程尝试访问某个对象时，操作系统会检查该线程的capabilities，并决定是否授权访问。
@@ -41,28 +39,36 @@ Capabilities将root权限分割成了权利更小的权限。小权限被称作c
 
 首先，以普通用户登录并运行以下命令：
 
-	$ ping www.baidu.com
+	$ ping -c 3 www.baidu.com
+
+![3.1-1](https://dn-simplecloud.shiyanlou.com/uid/8797/1524896224836.png-wm)
 
 命令成功运行，如果你查看/bin/ping的属性会发现它是一个root所有的Set-UID程序。如果ping中包含漏洞，那么整个系统就可能被入侵。问题是我们是否能移除ping的这些权限。
 
 让我们关闭程序的suid位：
 
+	$ sudo su
 	# chmod u-s /bin/ping
 
-（注：1. 请先``which ping``确认ping的真正位置，2. ‘#’开头说明以root权限运行命令，普通用户下请自行在命令前加sudo）
+![3.1-2](https://dn-simplecloud.shiyanlou.com/uid/8797/1524899467538.png-wm)
 
-现在再ping百度看会发生些什么。
+**（注：1. 请先``which ping``确认ping的真正位置，2. ‘#’开头说明以root权限运行命令，普通用户下请自行在命令前加sudo）**  
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428995460948?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+现在再ping百度看会发生些什么：
+
+```bash
+$ ping www.baidu.com
+ping: icmp open socket: Operation not permitted
+```
 
 它会提示你操作不被允许。这是因为ping命令需要打开RAW套接字，该操作需要root特权，这就是为什么ping是Set-UID程序了。但有了capability,我们就可以杯酒释兵权了，让我们分配cap_net_raw给ping，看看会发生什么：
 
 	$ sudo su
 	# setcap cap_net_raw=ep /bin/ping
-	# su normal_user
-	$ ping www.baidu.com
+	按ctrl + D 键回到普通用户
+	$ ping -c 3 www.baidu.com
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428995638747?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![3.1-3](https://dn-simplecloud.shiyanlou.com/uid/8797/1524900447039.png-wm)
 
 **任务1:** 取消下列程序的Set－UID并不影响它的行为。
 
@@ -71,8 +77,7 @@ Capabilities将root权限分割成了权利更小的权限。小权限被称作c
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428996241931?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
 给passwd设置以下cap：
-	
-	# setcap cap_chown,cap_dac_override,cap_fowner+ep /usr/bin/passwd
+	# setcap cap_chown,cap_dac_override,cap_fowner=ep /usr/bin/passwd
 
 ![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428996711824?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
 
@@ -92,7 +97,6 @@ Capabilities将root权限分割成了权利更小的权限。小权限被称作c
 + cap_net_raw
 
 (请同学独立搜索完成，这里就不做演示了哈:D)
-	
 ####3.2 实验2: 调整权限
 
 
