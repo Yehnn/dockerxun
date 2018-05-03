@@ -1,4 +1,11 @@
+---
+show: step
+version: 0.1
+enable_checker: true
+---
+
 ##Linux Capability探索实验
+
 ###一、实验描述
 
 本实验中，学生将感受到linux capability功能在访问控制上的优势，掌握使用Capability达到遵守最小权限原则的目的，并分析linux中基于Capability访问控制的设计。
@@ -72,14 +79,20 @@ ping: icmp open socket: Operation not permitted
 
 **任务1:** 取消下列程序的Set－UID并不影响它的行为。
 
-+  /usr/bin/passwd
++ /usr/bin/passwd
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428996241931?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+  >  seed 用户的密码是 dees。
 
-给passwd设置以下cap：
-	# setcap cap_chown,cap_dac_override,cap_fowner=ep /usr/bin/passwd
+```
+$ sudo su seed
+$ sudo chmod u-s /usr/bin/passwd
+$ passwd
+$ sudo setcap cap_chown,cap_dac_override,cap_fowner=ep /usr/bin/passwd
+```
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1428996711824?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+效果截图如下：
+
+![3.1-4](https://dn-simplecloud.shiyanlou.com/uid/8797/1524908149710.png-wm)
 
 **任务2:** 现在我们来熟悉一下其它capability（下面简称cap），你需要做：
 
