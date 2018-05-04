@@ -12,15 +12,19 @@ enable_checker: true
 
 ###二、环境搭建
 
-####2.1 安装Libcap
+在进行实验之前，首先需要做一些准备工作。
 
-`libcap` 库能够使用户级别的程序与 `capability` 特性做交互，一些linux发行版不包括这个库，如果你发现没有 `/usr/include/sys/capability.h` 这个文件（在我们的实验环境中是有这个文件的），那么运行以下命令进行安装：
+####2.1 下载Libcap
+
+`libcap` 库能够使用户级别的程序与 `capability` 特性做交互，一些linux发行版不包括这个库，在环境中已经有 `/usr/include/sys/capability.h` 这个文件，为了避免老版本的影响，我们还是删掉以前的，然后重新下载一个。
 
 ```bash
+$ cd
 $ wget http://labfile.oss.aliyuncs.com/libcap-2.21.tar.gz
 $ tar xvf libcap-2.21.tar.gz
-$ cd libcap-2.21
-$ sudo make 
+$ sudo rm /usr/include/sys/capability.h
+$ sudo rm /lib/libcap.so*
+$ sudo make
 $ sudo make install
 ```
 
@@ -110,10 +114,30 @@ $ sudo setcap cap_chown,cap_dac_override,cap_fowner=ep /usr/bin/passwd
 + cap_net_raw
 
 (请同学独立搜索完成，这里就不做演示了哈:D)
+
+```checker
+- name: check libcap
+  script: |
+    #!/bin/bash
+    ls /home/shiyanlou/libcap-2.21
+  error: 没有下载libcap到/home/shiyanlou目录
+- name: check old
+  script: |
+    #!/bin/bash
+    ! ls /usr/include/sys/capability.h
+    ! ls /lib/libcap.so*
+  error: 没有删除以前的libcap
+- name: check capability
+  script: |
+    #!/bin/bash
+    /sbin/getcap /usr/bin/passwd|grep cap_chown|grep cap_dac_override|grep cap_fowner|grep ep
+  error: 没有设置 passwd 的 capability
+```
+
 ####3.2 实验2: 调整权限
 
 
-跟使用ACL的访问控制相比，capabilities有其它优势：动态调整大量线程的权限对于遵守最小权限原则是很有必要的。当线程中当某个权限不再需要时，它应当移除所有相对应的capabilities。这样，即使线程被入侵了，攻击者也得不到这样已经被删除的capabilities。使用以下管理操作调整权限：
+跟使用ACL的访问控制相比，capabilities有其它优势：它可以动态调整大量线程的权限，这对于遵守最小权限原则是很有必要的。当线程中某个权限不再需要时，它应当移除所有相对应的capabilities。这样，即使线程被入侵了，攻击者也得不到已经被删除的capabilities。使用以下管理操作调整权限：
 
 1. Deleting：线程永久删除某个capability
 2. Disabling：线程会暂时停用某个capability。
@@ -130,7 +154,14 @@ $ sudo setcap cap_chown,cap_dac_override,cap_fowner=ep /usr/bin/passwd
 
 new后缀指新计算值，p前缀指线程，f前缀指文件cap。I，P，E分别指代 inheritable，permitted，effective，是一个cap位一个cap位计算的。
 
-为了让程序操作cap变得简单。请添加以下三个函数到 /home/seed/temp/libcap-2.21/libcap/cap proc.c 中
+切换到 /home/shiyanlou/libcap-2.21/libcap 目录下，编辑 cap_proc.c文件。
+
+```bash
+$ cd /home/shiyanlou/libcap-2.21/libcap
+$ sudo vi cap_proc.c
+```
+
+为了让程序操作cap变得简单，添加以下三个函数到 /home/shiyanlou/libcap-2.21/libcap/cap_proc.c 中
 
 ```
 /* Disable a cap on current process */
@@ -181,45 +212,44 @@ int cap_drop(cap_value_t capflag)
 ```
 运行以下命令编译安装libcap：
 
-	# cd libcap_directory（libcap安装包所在目录，如果没有请先下一个。）
-	# make
-	# make install
+	$ sudo make
+	$ sudo make install	
 
-（注：如果出现以下情况，请先找到libcap.so并删除，并将libcap.so.2重命名为libcap.so）
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1429001013278?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
-	
-**任务3:** 编译下面的程序，并分配cap_dac_read_search给它。以普通用户登录并运行程序。描述并解释你的观察。
+**任务3:** 在 /home/shiyanlou/libcap-2.21/libcap 目录下新建一个 use_cap.c 文件，并分配cap_dac_read_search给它。以普通用户登录并运行程序。描述并解释你的观察。
 
 ```
-//use_cap.c
+#include <fcntl.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <linux/capability.h>
 #include <sys/capability.h>
-#include <fcntl.h>
-
-int main(void)
+int main( void )
 {
-	if (open ("/etc/shadow",O_RDONLY) < 0)
-		return -1;
-	if (cap_disable(CAP_DAC_READ_SEARCH) < 0)
-		return -2;
-	if (open ("/etc/shadow", O_RDONLY) > 0)
-		return -3;
-	if (cap_enable(CAP_DAC_READ_SEARCH) < 0)
-		return -4;
-	if (open ("/etc/shadow",O_RDONLY) < 0)
-		return -5;
-	if (cap_drop(CAP_DAC_READ_SEARCH) < 0)
-		return -6;
-	if (open ("/etc/shadow",O_RDONLY) > 0)
-		return -7;
-	if (cap_enable(CAP_DAC_READ_SEARCH) == 0)
-		return -8;
-	printf("succeed!\n");
-	return 0;
+	if ( open( "/etc/shadow", O_RDONLY ) < 0 )
+		printf( "(a) Open failed\n" );
+
+	if ( cap_disable( CAP_DAC_READ_SEARCH ) < 0 )
+		return(-1);
+	if ( open( "/etc/shadow", O_RDONLY ) < 0 )
+		printf( "(b) Open failed\n" );
+
+	if ( cap_enable( CAP_DAC_READ_SEARCH ) < 0 )
+		return(-1);
+	if ( open( "/etc/shadow", O_RDONLY ) < 0 )
+		printf( "(c) Open failed\n" );
+
+	if ( cap_drop( CAP_DAC_READ_SEARCH ) < 0 )
+		return(-1);
+	if ( open( "/etc/shadow", O_RDONLY ) < 0 )
+		printf( "(d) Open failed\n" );
+
+	if ( cap_enable( CAP_DAC_READ_SEARCH ) == 0 )
+		return(-1);
+	if ( open( "/etc/shadow", O_RDONLY ) < 0 )
+		printf( "(e) Open failed\n" );
+
 }
 ```
 
@@ -228,7 +258,20 @@ int main(void)
 	$ gcc -c use_cap.c
 	$ gcc -o use_cap use_cap.o -lcap
 
-![图片描述信息](https://dn-anything-about-doc.qbox.me/userid8834labid864time1429000912917?watermark/1/image/aHR0cDovL3N5bC1zdGF0aWMucWluaXVkbi5jb20vaW1nL3dhdGVybWFyay5wbmc=/dissolve/60/gravity/SouthEast/dx/0/dy/10)
+![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1525415551547.png-wm)
+
+```checker
+- name：check cap_proc
+  script: |
+    #!/bin/bash
+    grep cap_disable /home/shiyanlou/libcap-2.21/libcap/cap_proc.c
+  error: 没有修改 cap_proc.c 文件
+- name: check use_cap
+  script: |
+    #!/bin/bash
+    ls /home/shiyanlou/libcap-2.21/libcap/use_cap.c
+  error: 没有 use_cap.c 文件
+```
 
 当你完成以上任务时，请回答下面几个问题：
 
@@ -239,8 +282,6 @@ ACL的使用：http://vbird.dic.ksu.edu.tw/linux_basic/0410accountmanager_3.php
 
 **问题2:**
 当程序（以普通用户运行）禁用cap A时，它遭到了缓冲区溢出攻击。攻击者成功注入恶意代码并运行。他可以使用cap A么？ 如果线程删除了cap A呢，可以使用cap A么？
-
-
 
 **问题3:**
 问题如上，改用竞态条件攻击。他可以使用cap A么？ 如果线程删除了cap A呢，可以使用cap A么？
